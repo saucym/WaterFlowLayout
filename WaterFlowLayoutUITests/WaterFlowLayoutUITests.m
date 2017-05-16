@@ -1,6 +1,6 @@
 //
-//  layoutUITests.m
-//  layoutUITests
+//  WaterFlowLayoutUITests.m
+//  WaterFlowLayoutUITests
 //
 //  Created by saucymqin on 2017/5/16.
 //  Copyright © 2017年 neutron. All rights reserved.
@@ -8,11 +8,11 @@
 
 #import <XCTest/XCTest.h>
 
-@interface layoutUITests : XCTestCase
+@interface WaterFlowLayoutUITests : XCTestCase
 
 @end
 
-@implementation layoutUITests
+@implementation WaterFlowLayoutUITests
 
 - (void)setUp {
     [super setUp];
