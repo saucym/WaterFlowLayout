@@ -10,10 +10,11 @@
 		931F0F991ECAF3A90097DF2D /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 931F0F981ECAF3A90097DF2D /* main.m */; };
 		931F0F9C1ECAF3A90097DF2D /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 931F0F9B1ECAF3A90097DF2D /* AppDelegate.m */; };
 		931F0F9F1ECAF3A90097DF2D /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 931F0F9E1ECAF3A90097DF2D /* ViewController.m */; };
-		931F0FA21ECAF3A90097DF2D /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 931F0FA01ECAF3A90097DF2D /* Main.storyboard */; };
 		931F0FA41ECAF3A90097DF2D /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 931F0FA31ECAF3A90097DF2D /* Assets.xcassets */; };
 		931F0FA71ECAF3A90097DF2D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 931F0FA51ECAF3A90097DF2D /* LaunchScreen.storyboard */; };
 		931F0FB21ECAF3A90097DF2D /* WaterFlowLayoutUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 931F0FB11ECAF3A90097DF2D /* WaterFlowLayoutUITests.m */; };
+		931F0FC01ECAF7930097DF2D /* WYWaterFlowLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 931F0FBF1ECAF7930097DF2D /* WYWaterFlowLayout.m */; };
+		931F0FC31ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 931F0FC21ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,13 +34,17 @@
 		931F0F9B1ECAF3A90097DF2D /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		931F0F9D1ECAF3A90097DF2D /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
 		931F0F9E1ECAF3A90097DF2D /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
-		931F0FA11ECAF3A90097DF2D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		931F0FA31ECAF3A90097DF2D /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		931F0FA61ECAF3A90097DF2D /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		931F0FA81ECAF3A90097DF2D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		931F0FAD1ECAF3A90097DF2D /* WaterFlowLayoutUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WaterFlowLayoutUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		931F0FB11ECAF3A90097DF2D /* WaterFlowLayoutUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WaterFlowLayoutUITests.m; sourceTree = "<group>"; };
 		931F0FB31ECAF3A90097DF2D /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		931F0FBC1ECAF77D0097DF2D /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
+		931F0FBE1ECAF7930097DF2D /* WYWaterFlowLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WYWaterFlowLayout.h; sourceTree = "<group>"; };
+		931F0FBF1ECAF7930097DF2D /* WYWaterFlowLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WYWaterFlowLayout.m; sourceTree = "<group>"; };
+		931F0FC11ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WYCollectionViewWaterfallLayout.h; sourceTree = "<group>"; };
+		931F0FC21ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WYCollectionViewWaterfallLayout.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -63,6 +68,7 @@
 		931F0F8B1ECAF3A90097DF2D = {
 			isa = PBXGroup;
 			children = (
+				931F0FBC1ECAF77D0097DF2D /* README.md */,
 				931F0F961ECAF3A90097DF2D /* WaterFlowLayout */,
 				931F0FB01ECAF3A90097DF2D /* WaterFlowLayoutUITests */,
 				931F0F951ECAF3A90097DF2D /* Products */,
@@ -81,11 +87,14 @@
 		931F0F961ECAF3A90097DF2D /* WaterFlowLayout */ = {
 			isa = PBXGroup;
 			children = (
+				931F0FC11ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.h */,
+				931F0FC21ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.m */,
+				931F0FBE1ECAF7930097DF2D /* WYWaterFlowLayout.h */,
+				931F0FBF1ECAF7930097DF2D /* WYWaterFlowLayout.m */,
 				931F0F9A1ECAF3A90097DF2D /* AppDelegate.h */,
 				931F0F9B1ECAF3A90097DF2D /* AppDelegate.m */,
 				931F0F9D1ECAF3A90097DF2D /* ViewController.h */,
 				931F0F9E1ECAF3A90097DF2D /* ViewController.m */,
-				931F0FA01ECAF3A90097DF2D /* Main.storyboard */,
 				931F0FA31ECAF3A90097DF2D /* Assets.xcassets */,
 				931F0FA51ECAF3A90097DF2D /* LaunchScreen.storyboard */,
 				931F0FA81ECAF3A90097DF2D /* Info.plist */,
@@ -197,7 +206,6 @@
 			files = (
 				931F0FA71ECAF3A90097DF2D /* LaunchScreen.storyboard in Resources */,
 				931F0FA41ECAF3A90097DF2D /* Assets.xcassets in Resources */,
-				931F0FA21ECAF3A90097DF2D /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -216,7 +224,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				931F0F9F1ECAF3A90097DF2D /* ViewController.m in Sources */,
+				931F0FC01ECAF7930097DF2D /* WYWaterFlowLayout.m in Sources */,
 				931F0F9C1ECAF3A90097DF2D /* AppDelegate.m in Sources */,
+				931F0FC31ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.m in Sources */,
 				931F0F991ECAF3A90097DF2D /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -240,14 +250,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		931F0FA01ECAF3A90097DF2D /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				931F0FA11ECAF3A90097DF2D /* Base */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 		931F0FA51ECAF3A90097DF2D /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
@@ -416,6 +418,7 @@
 				931F0FB81ECAF3A90097DF2D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		931F0FB91ECAF3A90097DF2D /* Build configuration list for PBXNativeTarget "WaterFlowLayoutUITests" */ = {
 			isa = XCConfigurationList;
@@ -424,6 +427,7 @@
 				931F0FBB1ECAF3A90097DF2D /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
