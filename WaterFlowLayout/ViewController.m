@@ -38,12 +38,15 @@
 
 @implementation ViewController
 
+static CGFloat minimumLineSpacing = 1;
+static CGFloat minimumInteritemSpacing = 1;
 
 - (UICollectionView *)collectionView {
     if (!_collectionView) {
+//        WYCollectionViewWaterfallLayout *layout = [[WYCollectionViewWaterfallLayout alloc] init];
         WYCollectionViewWaterfallLayout *layout = [[WYWaterFlowLayout alloc] init];
-        layout.minimumInteritemSpacing = 1;
-        layout.minimumLineSpacing = 1;
+        layout.minimumInteritemSpacing = minimumInteritemSpacing;
+        layout.minimumLineSpacing = minimumLineSpacing;
         layout.sectionInset = UIEdgeInsetsMake(0, 0, 0, 0);
         layout.headerReferenceSize = CGSizeMake(0, 15);
         layout.footerReferenceSize = CGSizeMake(0, 10);
@@ -58,7 +61,7 @@
         _collectionView.dataSource = self;
         _collectionView.delegate = self;
         _collectionView.backgroundColor = [UIColor whiteColor];
-//        _collectionView.contentInset = UIEdgeInsetsMake(100, 150, 40, 20);
+//        _collectionView.contentInset = UIEdgeInsetsMake(10, 15, 44, 15);
         [_collectionView registerClass:[CHTCollectionViewWaterfallCell class]
             forCellWithReuseIdentifier:CELL_IDENTIFIER];
         [_collectionView registerClass:[UICollectionReusableView class]
@@ -74,19 +77,34 @@
 static CGFloat aItem;
 
 - (NSArray *)cellSizes {
-    CGFloat item = aItem;
     if (!_cellSizes) {
         NSInteger count = 10;
         NSMutableArray *array = [NSMutableArray arrayWithCapacity:count];
-        [array addObject:[NSValue valueWithCGSize:CGSizeMake(item * 1, item * 3)]];
-        [array addObject:[NSValue valueWithCGSize:CGSizeMake(item * 3, item * 3)]];
-        for (NSInteger i = 0; i < count; i ++) {
-            [array addObject:[NSValue valueWithCGSize:CGSizeMake(item * (i % 3 + 1), item * ((i + 1) % 3 + 1))]];
-        }
+        [self addSizeToArray:array widthCount:1 heightCount:3];
+        [self addSizeToArray:array widthCount:1 heightCount:2];
+        [self addSizeToArray:array widthCount:1 heightCount:1];
+        [self addSizeToArray:array widthCount:2 heightCount:3];
+        [self addSizeToArray:array widthCount:2 heightCount:2];
+        [self addSizeToArray:array widthCount:2 heightCount:1];
+        [self addSizeToArray:array widthCount:3 heightCount:3];
+        [self addSizeToArray:array widthCount:1 heightCount:1];
+        [self addSizeToArray:array widthCount:1 heightCount:1];
+        [self addSizeToArray:array widthCount:1 heightCount:1];
+        [self addSizeToArray:array widthCount:1 heightCount:1];
+        [self addSizeToArray:array widthCount:1 heightCount:1];
+        [self addSizeToArray:array widthCount:1 heightCount:1];
+        [self addSizeToArray:array widthCount:1 heightCount:1];
+        [self addSizeToArray:array widthCount:1 heightCount:1];
+        [self addSizeToArray:array widthCount:1 heightCount:1];
         
         _cellSizes = array;
     }
+    
     return _cellSizes;
+}
+
+- (void)addSizeToArray:(NSMutableArray *)array widthCount:(NSInteger)wCount heightCount:(NSInteger)hCount {
+    [array addObject:[NSValue valueWithCGSize:CGSizeMake(aItem * wCount + (wCount - 1) * minimumInteritemSpacing, aItem * hCount + (hCount - 1) * minimumLineSpacing)]];
 }
 
 #pragma mark - Life Cycle
@@ -99,11 +117,14 @@ static CGFloat aItem;
 - (void)viewDidLoad {
     aItem = 30;
     [super viewDidLoad];
+    self.title = @"水流布局测试";
     [self.view addSubview:self.collectionView];
     
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(vc_refreshLayout)];
-    UIBarButtonItem *add = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemAdd target:self action:@selector(vc_add_andRefreshLayout:)];
-    UIBarButtonItem *sub = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(vc_add_andRefreshLayout:)];
+    UIBarButtonItem *add = [[UIBarButtonItem alloc] initWithTitle:@"+" style:0 target:self action:@selector(vc_add_andRefreshLayout:)];
+    [add setTitleTextAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:33]} forState:UIControlStateNormal];
+    UIBarButtonItem *sub = [[UIBarButtonItem alloc] initWithTitle:@"-" style:0 target:self action:@selector(vc_add_andRefreshLayout:)];
+    [sub setTitleTextAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:33]} forState:UIControlStateNormal];
     sub.tag = 1;
     self.navigationItem.leftBarButtonItems = @[add, sub];
 }
@@ -117,6 +138,8 @@ static CGFloat aItem;
     _cellSizes = nil;
     [UIView animateWithDuration:0.3 animations:^{
         [self.collectionView.collectionViewLayout invalidateLayout];
+    } completion:^(BOOL finished) {
+        [self.collectionView reloadData];
     }];
 }
 

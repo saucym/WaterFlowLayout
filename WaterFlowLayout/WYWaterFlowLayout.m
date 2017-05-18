@@ -226,7 +226,14 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
                     itemSize = self.itemSize;
                 }
                 
-                CGRect rect = [self willAddItemWithSize:CGSizeMake(itemSize.width + _minimumInteritemSpacing, itemSize.height + minimumLineSpacing) maxWidth:contentRect.size.width maxTop:&top];
+                itemSize.width  += _minimumInteritemSpacing;
+                itemSize.height += minimumLineSpacing;
+                if (itemSize.width > maxWidth && maxWidth > 0) {
+                    itemSize.height /= itemSize.width / maxWidth;
+                    itemSize.width = maxWidth;
+                }
+                
+                CGRect rect = [self willAddItemWithSize:itemSize maxWidth:contentRect.size.width maxTop:&top];
                 rect.origin.x   += _minimumInteritemSpacing;
                 rect.size.width -= _minimumInteritemSpacing;
                 
@@ -280,7 +287,8 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
         return CGSizeZero;
     }
     
-    CGSize contentSize = self.collectionView.bounds.size;
+    CGSize contentSize = CGSizeZero;
+    contentSize.width = self.collectionView.bounds.size.width - self.collectionView.contentInset.left - self.collectionView.contentInset.right;
     contentSize.height = self.maxContentBottom + self.collectionView.contentInset.bottom;
     return contentSize;
 }
