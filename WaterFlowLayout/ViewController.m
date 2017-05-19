@@ -70,7 +70,7 @@ static CGFloat minimumInteritemSpacing = 1;
         _collectionView.dataSource = self;
         _collectionView.delegate = self;
         _collectionView.backgroundColor = [UIColor whiteColor];
-//        _collectionView.contentInset = UIEdgeInsetsMake(10, 15, 44, 15);
+        //_collectionView.contentInset = UIEdgeInsetsMake(0, 0, 44, 0);
         [_collectionView registerClass:[CHTCollectionViewWaterfallCell class]
             forCellWithReuseIdentifier:CELL_IDENTIFIER];
         [_collectionView registerClass:[UICollectionReusableView class]
@@ -160,7 +160,7 @@ static CGFloat aItem;
 }
 
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
-//    return 2;
+    return 2;
     return 1000;
 }
 

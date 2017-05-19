@@ -40,10 +40,7 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, UICollectionViewLayoutAttributes *> *headersAttribute;
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, UICollectionViewLayoutAttributes *> *footersAttribute;
 @property (nonatomic, strong) NSMutableArray<UICollectionViewLayoutAttributes *> *allAttributes;
-
-/// Array to store union rectangles
-@property (nonatomic, strong) NSMutableArray *unionRects;
-
+@property (nonatomic, strong) NSMutableArray *unionRects;/// Array to store union rectangles
 @property (nonatomic, assign) CGFloat maxContentBottom;
 
 @end
@@ -148,39 +145,15 @@ static const NSInteger unionSize = 20;
         return;
     }
     
-    CGRect contentRect = UIEdgeInsetsInsetRect((CGRect){CGPointMake(-self.collectionView.contentInset.left, -self.collectionView.contentInset.top), self.collectionView.bounds.size}, self.collectionView.contentInset);
+    CGFloat const maxContentWidth = self.collectionView.bounds.size.width - self.collectionView.contentInset.left - self.collectionView.contentInset.right;
     NSInteger idx = 0;
-    CGFloat top = contentRect.origin.y;
+    CGFloat top = 0;//self.collectionView.contentInset.top;////这里不需要加top，因为已经体现到bounds上了
+    CGFloat const mini_x = self.collectionView.contentInset.left;
     
     UICollectionViewLayoutAttributes *attributes;
     for (NSInteger section = 0; section < numberOfSections; ++section) {
         /*
-         * 1. Get section-specific metrics (minimumLineSpacing, sectionInset)
-         */
-        CGFloat minimumLineSpacing;
-        if ([self.delegate respondsToSelector:@selector(collectionView:layout:minimumLineSpacingForSectionAtIndex:)]) {
-            minimumLineSpacing = [self.delegate collectionView:self.collectionView layout:self minimumLineSpacingForSectionAtIndex:section];
-        } else {
-            minimumLineSpacing = self.minimumLineSpacing;
-        }
-        
-        CGFloat columnSpacing = self.minimumInteritemSpacing;
-        if ([self.delegate respondsToSelector:@selector(collectionView:layout:minimumInteritemSpacingForSectionAtIndex:)]) {
-            columnSpacing = [self.delegate collectionView:self.collectionView layout:self minimumInteritemSpacingForSectionAtIndex:section];
-        }
-        
-        UIEdgeInsets sectionInset;
-        if ([self.delegate respondsToSelector:@selector(collectionView:layout:insetForSectionAtIndex:)]) {
-            sectionInset = [self.delegate collectionView:self.collectionView layout:self insetForSectionAtIndex:section];
-        } else {
-            sectionInset = self.sectionInset;
-        }
-        
-        CGFloat const maxWidth = contentRect.size.width - sectionInset.left - sectionInset.right;
-        CGFloat const mini_x = contentRect.origin.x;
-        
-        /*
-         * 2. Section header
+         * 1. Section header
          */
         CGFloat headerHeight;
         if ([self.delegate respondsToSelector:@selector(collectionView:layout:referenceSizeForHeaderInSection:)]) {
@@ -189,18 +162,18 @@ static const NSInteger unionSize = 20;
             headerHeight = self.headerReferenceSize.height;
         }
         
-        UIEdgeInsets headerInset;
-        if ([self.delegate respondsToSelector:@selector(collectionView:layout:insetForHeaderInSection:)]) {
-            headerInset = [self.delegate collectionView:self.collectionView layout:self insetForHeaderInSection:section];
-        } else {
-            headerInset = self.headerInset;
-        }
-        
         if (headerHeight > 0) {
+            UIEdgeInsets headerInset;
+            if ([self.delegate respondsToSelector:@selector(collectionView:layout:insetForHeaderInSection:)]) {
+                headerInset = [self.delegate collectionView:self.collectionView layout:self insetForHeaderInSection:section];
+            } else {
+                headerInset = self.headerInset;
+            }
+            
             top += headerInset.top;
             
             attributes = [UICollectionViewLayoutAttributes layoutAttributesForSupplementaryViewOfKind:UICollectionElementKindSectionHeader withIndexPath:[NSIndexPath indexPathForItem:0 inSection:section]];
-            attributes.frame = CGRectMake(headerInset.left + mini_x, top, maxWidth - headerInset.left - headerInset.right, headerHeight);
+            attributes.frame = CGRectMake(headerInset.left + mini_x, top, maxContentWidth - headerInset.left - headerInset.right, headerHeight);
             
             self.headersAttribute[@(section)] = attributes;
             [self.allAttributes addObject:attributes];
@@ -210,11 +183,31 @@ static const NSInteger unionSize = 20;
         
         
         /*
-         * 3. Section items
+         * 2. Section items
          */
         NSInteger itemCount = [self.collectionView numberOfItemsInSection:section];
         NSMutableArray<UICollectionViewLayoutAttributes *> *itemAttributes = [NSMutableArray arrayWithCapacity:itemCount];
         if (itemCount > 0) {
+            CGFloat minimumLineSpacing;
+            if ([self.delegate respondsToSelector:@selector(collectionView:layout:minimumLineSpacingForSectionAtIndex:)]) {
+                minimumLineSpacing = [self.delegate collectionView:self.collectionView layout:self minimumLineSpacingForSectionAtIndex:section];
+            } else {
+                minimumLineSpacing = self.minimumLineSpacing;
+            }
+            
+            CGFloat columnSpacing = self.minimumInteritemSpacing;
+            if ([self.delegate respondsToSelector:@selector(collectionView:layout:minimumInteritemSpacingForSectionAtIndex:)]) {
+                columnSpacing = [self.delegate collectionView:self.collectionView layout:self minimumInteritemSpacingForSectionAtIndex:section];
+            }
+            
+            UIEdgeInsets sectionInset;
+            if ([self.delegate respondsToSelector:@selector(collectionView:layout:insetForSectionAtIndex:)]) {
+                sectionInset = [self.delegate collectionView:self.collectionView layout:self insetForSectionAtIndex:section];
+            } else {
+                sectionInset = self.sectionInset;
+            }
+            
+            CGFloat const maxWidth = maxContentWidth - sectionInset.left - sectionInset.right;
             top += sectionInset.top;
             NSMutableArray<WYSpaceIndexSet *> *emptySpaces = [NSMutableArray arrayWithCapacity:20];//用于缓存当前的布局状态
             [emptySpaces addObject:[WYSpaceIndexSet indexSetWithFrame:CGRectMake(0, top, 0, 0) maxWidth:maxWidth]];
@@ -255,7 +248,7 @@ static const NSInteger unionSize = 20;
         [self.itemsAttributes addObject:itemAttributes];
         
         /*
-         * 4. Section footer
+         * 3. Section footer
          */
         CGFloat footerHeight;
         if ([self.delegate respondsToSelector:@selector(collectionView:layout:referenceSizeForFooterInSection:)]) {
@@ -264,17 +257,17 @@ static const NSInteger unionSize = 20;
             footerHeight = self.footerReferenceSize.height;
         }
         
-        UIEdgeInsets footerInset;
-        if ([self.delegate respondsToSelector:@selector(collectionView:layout:insetForFooterInSection:)]) {
-            footerInset = [self.delegate collectionView:self.collectionView layout:self insetForFooterInSection:section];
-        } else {
-            footerInset = self.footerInset;
-        }
-        
         if (footerHeight > 0) {
+            UIEdgeInsets footerInset;
+            if ([self.delegate respondsToSelector:@selector(collectionView:layout:insetForFooterInSection:)]) {
+                footerInset = [self.delegate collectionView:self.collectionView layout:self insetForFooterInSection:section];
+            } else {
+                footerInset = self.footerInset;
+            }
+            
             top += footerInset.top;
             attributes = [UICollectionViewLayoutAttributes layoutAttributesForSupplementaryViewOfKind:UICollectionElementKindSectionFooter withIndexPath:[NSIndexPath indexPathForItem:0 inSection:section]];
-            attributes.frame = CGRectMake(footerInset.left + mini_x, top, maxWidth - footerInset.left - footerInset.right, footerHeight);
+            attributes.frame = CGRectMake(footerInset.left + mini_x, top, maxContentWidth - footerInset.left - footerInset.right, footerHeight);
             
             self.footersAttribute[@(section)] = attributes;
             [self.allAttributes addObject:attributes];
@@ -285,7 +278,7 @@ static const NSInteger unionSize = 20;
     
     self.maxContentBottom = top;
     
-    // Build union rects
+    // 把20个作为一组计算出一个超集rect，主要用来加上滑动时定位
     idx = 0;
     NSInteger itemCounts = [self.allAttributes count];
     while (idx < itemCounts) {
@@ -312,7 +305,7 @@ static const NSInteger unionSize = 20;
     }
     
     contentSize.width = self.collectionView.bounds.size.width - self.collectionView.contentInset.left - self.collectionView.contentInset.right;
-    contentSize.height = self.maxContentBottom + self.collectionView.contentInset.bottom;
+    contentSize.height = self.maxContentBottom;// + self.collectionView.contentInset.bottom; //这里不需要加bottom，因为已经体现到bounds上了
     return contentSize;
 }
 
