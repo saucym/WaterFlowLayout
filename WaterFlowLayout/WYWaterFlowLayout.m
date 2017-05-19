@@ -148,7 +148,7 @@ static const NSInteger unionSize = 20;
         return;
     }
     
-    CGRect contentRect = UIEdgeInsetsInsetRect(self.collectionView.bounds, self.collectionView.contentInset);
+    CGRect contentRect = UIEdgeInsetsInsetRect((CGRect){CGPointMake(-self.collectionView.contentInset.left, -self.collectionView.contentInset.top), self.collectionView.bounds.size}, self.collectionView.contentInset);
     NSInteger idx = 0;
     CGFloat top = contentRect.origin.y;
     
@@ -348,18 +348,20 @@ static const NSInteger unionSize = 20;
             break;
         }
     }
+    
     for (i = self.unionRects.count - 1; i >= 0; i--) {
         if (CGRectIntersectsRect(rect, [self.unionRects[i] CGRectValue])) {
             end = MIN((i + 1) * unionSize, self.allAttributes.count);
             break;
         }
     }
+    
     for (i = begin; i < end; i++) {
         UICollectionViewLayoutAttributes *attr = self.allAttributes[i];
         if (CGRectIntersectsRect(rect, attr.frame)) {
             [attrs addObject:attr];
         }
-    }
+     }
     
     /*
     NSInteger begin = 0, end = self.allAttributes.count;
@@ -384,6 +386,7 @@ static const NSInteger unionSize = 20;
             [attrs addObject:attr];
         }
     }
+     
      */
     
     return [NSArray arrayWithArray:attrs];
