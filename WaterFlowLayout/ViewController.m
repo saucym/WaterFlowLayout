@@ -9,8 +9,9 @@
 #import "ViewController.h"
 #import "WYCollectionViewWaterfallLayout.h"
 #import "WYWaterFlowLayout.h"
+#import "WYTestLayout.h"
 
-#define CELL_COUNT 300
+#define CELL_COUNT 100
 #define CELL_IDENTIFIER @"WaterfallCell"
 #define HEADER_IDENTIFIER @"WaterfallHeader"
 #define FOOTER_IDENTIFIER @"WaterfallFooter"
@@ -43,11 +44,19 @@ static CGFloat minimumInteritemSpacing = 1;
 
 - (UICollectionView *)collectionView {
     if (!_collectionView) {
-//        WYCollectionViewWaterfallLayout *layout = [[WYCollectionViewWaterfallLayout alloc] init];
-        WYCollectionViewWaterfallLayout *layout = [[WYWaterFlowLayout alloc] init];
+        NSInteger type = 2;
+        WYCollectionViewWaterfallLayout *layout = nil;
+        if (type == 0) {
+            layout = [[WYCollectionViewWaterfallLayout alloc] init];
+        } else if (type == 1) {
+            layout = [[WYTestLayout alloc] init];
+        } else {
+            layout = [[WYWaterFlowLayout alloc] init];
+        }
+        
         layout.minimumInteritemSpacing = minimumInteritemSpacing;
         layout.minimumLineSpacing = minimumLineSpacing;
-        layout.sectionInset = UIEdgeInsetsMake(0, 0, 0, 0);
+        layout.sectionInset = UIEdgeInsetsMake(10, 0, 5, 0);
         layout.headerReferenceSize = CGSizeMake(0, 15);
         layout.footerReferenceSize = CGSizeMake(0, 10);
         if ([layout isKindOfClass:[WYCollectionViewWaterfallLayout class]]) {
@@ -151,8 +160,8 @@ static CGFloat aItem;
 }
 
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
-    return 2;
-    return 150;
+//    return 2;
+    return 1000;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {

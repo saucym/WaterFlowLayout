@@ -6,6 +6,9 @@
 //  Copyright © 2016年 tencent. All rights reserved.
 //
 
+#define TICK   __block NSDate *startTime = [NSDate date]; __block NSDate *endTime = nil;
+#define TOCK   endTime = [NSDate date];NSLog(@"\n\n[%s][Line %d]  duration:%.3f(ms)\n\n", __PRETTY_FUNCTION__, __LINE__, [endTime timeIntervalSinceDate:startTime]*1000);startTime = endTime
+
 #import "WYCollectionViewWaterfallLayout.h"
 
 @interface WYCollectionViewWaterfallLayout()
@@ -170,6 +173,7 @@ static const NSInteger unionSize = 20;
 
 #pragma mark - Methods to Override
 - (void)prepareLayout {
+    TICK;
     [super prepareLayout];
     
     [self.headersAttribute removeAllObjects];
@@ -362,6 +366,8 @@ static const NSInteger unionSize = 20;
         
         [self.unionRects addObject:[NSValue valueWithCGRect:unionRect]];
     }
+    
+    TOCK;
 }
 
 - (CGSize)collectionViewContentSize {

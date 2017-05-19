@@ -6,6 +6,9 @@
 //  Copyright © 2017年 neutron. All rights reserved.
 //
 
+#define TICK   __block NSDate *startTime = [NSDate date]; __block NSDate *endTime = nil;
+#define TOCK   endTime = [NSDate date];NSLog(@"\n\n[%s][Line %d]  duration:%.3f(ms)\n\n", __PRETTY_FUNCTION__, __LINE__, [endTime timeIntervalSinceDate:startTime]*1000);startTime = endTime
+
 #import "WYWaterFlowLayout.h"
 
 static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
@@ -31,24 +34,24 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
 
 @interface WYWaterFlowLayout ()
 
-/// The delegate will point to collection view's delegate automatically.
 @property (nonatomic, weak) id <UICollectionViewDelegateWaterFlowLayout> delegate;
 
-/// Array of arrays. Each array stores item attributes for each section
 @property (nonatomic, strong) NSMutableArray<NSMutableArray<UICollectionViewLayoutAttributes *> *> *itemsAttributes;
-/// Dictionary to store section headers' attribute
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, UICollectionViewLayoutAttributes *> *headersAttribute;
-/// Dictionary to store section footers' attribute
 @property (nonatomic, strong) NSMutableDictionary<NSNumber *, UICollectionViewLayoutAttributes *> *footersAttribute;
-/// Array to store attributes for all items includes headers, cells, and footers
 @property (nonatomic, strong) NSMutableArray<UICollectionViewLayoutAttributes *> *allAttributes;
 
-@property (nonatomic, strong) NSMutableArray<WYSpaceIndexSet *> *emptySpaces;
+/// Array to store union rectangles
+@property (nonatomic, strong) NSMutableArray *unionRects;
+
 @property (nonatomic, assign) CGFloat maxContentBottom;
 
 @end
 
 @implementation WYWaterFlowLayout
+
+/// How many items to be union into a single rectangle
+static const NSInteger unionSize = 20;
 
 #pragma mark - Init
 - (void)commonInit {
@@ -113,12 +116,11 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
     return _allAttributes;
 }
 
-- (NSMutableArray<WYSpaceIndexSet *> *)emptySpaces {
-    if (!_emptySpaces) {
-        _emptySpaces = [NSMutableArray array];
+- (NSMutableArray *)unionRects {
+    if (!_unionRects) {
+        _unionRects = [NSMutableArray array];
     }
-    
-    return _emptySpaces;
+    return _unionRects;
 }
 
 - (id <UICollectionViewDelegateWaterFlowLayout> )delegate {
@@ -131,13 +133,14 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
 }
 
 - (void)prepareLayout {
+    TICK;
     [super prepareLayout];
     
     [self.itemsAttributes removeAllObjects];
     [self.headersAttribute removeAllObjects];
     [self.footersAttribute removeAllObjects];
     [self.allAttributes removeAllObjects];
-    [self.emptySpaces removeAllObjects];
+    [self.unionRects removeAllObjects];
     self.maxContentBottom = 0;
     
     NSInteger numberOfSections = [self.collectionView numberOfSections];
@@ -213,8 +216,8 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
         NSMutableArray<UICollectionViewLayoutAttributes *> *itemAttributes = [NSMutableArray arrayWithCapacity:itemCount];
         if (itemCount > 0) {
             top += sectionInset.top;
-            [self.emptySpaces removeAllObjects];
-            [self.emptySpaces addObject:[WYSpaceIndexSet indexSetWithFrame:CGRectMake(0, top, 0, 0) maxWidth:maxWidth]];
+            NSMutableArray<WYSpaceIndexSet *> *emptySpaces = [NSMutableArray arrayWithCapacity:20];//用于缓存当前的布局状态
+            [emptySpaces addObject:[WYSpaceIndexSet indexSetWithFrame:CGRectMake(0, top, 0, 0) maxWidth:maxWidth]];
             
             for (idx = 0; idx < itemCount; idx++) {
                 NSIndexPath *indexPath = [NSIndexPath indexPathForItem:idx inSection:section];
@@ -233,8 +236,8 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
                     itemSize.width = maxWidth;
                 }
                 
-                CGRect rect = [self willAddItemWithSize:itemSize maxWidth:contentRect.size.width maxTop:&top];
-                rect.origin.x   += _minimumInteritemSpacing;
+                CGRect rect = [self willAddItemWithSize:itemSize maxWidth:maxWidth maxTop:&top withSpaces:emptySpaces];
+                rect.origin.x   += _minimumInteritemSpacing + sectionInset.left;
                 rect.size.width -= _minimumInteritemSpacing;
                 
                 rect.origin.y    += minimumLineSpacing;
@@ -245,6 +248,8 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
                 [itemAttributes addObject:attributes];
                 [self.allAttributes addObject:attributes];
             }
+            
+            top += sectionInset.bottom;
         }
         
         [self.itemsAttributes addObject:itemAttributes];
@@ -279,15 +284,33 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
     } // end of for (NSInteger section = 0; section < numberOfSections; ++section)
     
     self.maxContentBottom = top;
+    
+    // Build union rects
+    idx = 0;
+    NSInteger itemCounts = [self.allAttributes count];
+    while (idx < itemCounts) {
+        CGRect unionRect = ((UICollectionViewLayoutAttributes *)self.allAttributes[idx]).frame;
+        NSInteger rectEndIndex = MIN(idx + unionSize, itemCounts);
+        
+        for (NSInteger i = idx + 1; i < rectEndIndex; i++) {
+            unionRect = CGRectUnion(unionRect, ((UICollectionViewLayoutAttributes *)self.allAttributes[i]).frame);
+        }
+        
+        idx = rectEndIndex;
+        
+        [self.unionRects addObject:[NSValue valueWithCGRect:unionRect]];
+    }
+    
+    TOCK;
 }
 
 - (CGSize)collectionViewContentSize {
+    CGSize contentSize = CGSizeZero;
     NSInteger numberOfSections = [self.collectionView numberOfSections];
     if (numberOfSections == 0) {
-        return CGSizeZero;
+        return contentSize;
     }
     
-    CGSize contentSize = CGSizeZero;
     contentSize.width = self.collectionView.bounds.size.width - self.collectionView.contentInset.left - self.collectionView.contentInset.right;
     contentSize.height = self.maxContentBottom + self.collectionView.contentInset.bottom;
     return contentSize;
@@ -310,14 +333,37 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
     } else if ([kind isEqualToString:UICollectionElementKindSectionFooter]) {
         attribute = self.footersAttribute[@(indexPath.section)];
     }
+    
     return attribute;
 }
 
 - (NSArray<UICollectionViewLayoutAttributes *> *)layoutAttributesForElementsInRect:(CGRect)rect {
     NSInteger i;
-    NSInteger begin = 0, end = self.allAttributes.count;
+    NSInteger begin = 0, end = self.unionRects.count;
     NSMutableArray *attrs = [NSMutableArray array];
     
+    for (i = 0; i < self.unionRects.count; i++) {
+        if (CGRectIntersectsRect(rect, [self.unionRects[i] CGRectValue])) {
+            begin = i * unionSize;
+            break;
+        }
+    }
+    for (i = self.unionRects.count - 1; i >= 0; i--) {
+        if (CGRectIntersectsRect(rect, [self.unionRects[i] CGRectValue])) {
+            end = MIN((i + 1) * unionSize, self.allAttributes.count);
+            break;
+        }
+    }
+    for (i = begin; i < end; i++) {
+        UICollectionViewLayoutAttributes *attr = self.allAttributes[i];
+        if (CGRectIntersectsRect(rect, attr.frame)) {
+            [attrs addObject:attr];
+        }
+    }
+    
+    /*
+    NSInteger begin = 0, end = self.allAttributes.count;
+    NSMutableArray *attrs = [NSMutableArray array];
     for (i = 0; i < self.allAttributes.count; i++) {
         if (CGRectIntersectsRect(rect, [self.allAttributes[i] frame])) {
             begin = i;
@@ -331,12 +377,14 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
             break;
         }
     }
+    
     for (i = begin; i < end; i++) {
         UICollectionViewLayoutAttributes *attr = self.allAttributes[i];
         if (CGRectIntersectsRect(rect, attr.frame)) {
             [attrs addObject:attr];
         }
     }
+     */
     
     return [NSArray arrayWithArray:attrs];
 }
@@ -346,13 +394,14 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
     if (CGRectGetWidth(newBounds) != CGRectGetWidth(oldBounds)) {
         return YES;
     }
+    
     return NO;
 }
 
-- (CGRect)willAddItemWithSize:(CGSize)size maxWidth:(CGFloat)maxWidth maxTop:(CGFloat *)p_top {
+- (CGRect)willAddItemWithSize:(CGSize)size maxWidth:(CGFloat)maxWidth maxTop:(CGFloat *)p_top withSpaces:(NSMutableArray<WYSpaceIndexSet *> *)emptySpaces { //TODO:可以仔细研究下这里面的计算 看是否有优化空间，这里调用太频繁了
     __block CGPoint point = CGPointZero;
     //对比已有的空位找到一个能放下的size空位
-    [self.emptySpaces enumerateObjectsUsingBlock:^(WYSpaceIndexSet *set, NSUInteger idx, BOOL *stop) {
+    [emptySpaces enumerateObjectsUsingBlock:^(WYSpaceIndexSet *set, NSUInteger idx, BOOL *stop) {
         [set enumerateRangesUsingBlock:^(NSRange range, BOOL * _Nonnull stopSet) {
             if (range.length >= size.width) {
                 point.x = range.location;
@@ -370,7 +419,7 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
     NSMutableIndexSet *shouldDeleteSet = [NSMutableIndexSet indexSet];
     __block CGFloat top = CGRectGetMaxY(nSet.itemFrame);
     //对空位进行处理，比它低的空位被它占用，比他高的会占用它的空位
-    [self.emptySpaces enumerateObjectsUsingBlock:^(WYSpaceIndexSet * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
+    [emptySpaces enumerateObjectsUsingBlock:^(WYSpaceIndexSet * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {
         if (CGRectGetMaxY(obj.itemFrame) > CGRectGetMaxY(nSet.itemFrame)) {//比他高的会占用它的空位
             [nSet removeIndexesInRange:NSMakeRange(obj.itemFrame.origin.x, obj.itemFrame.size.width)];
         } else if (CGRectGetMaxY(obj.itemFrame) < CGRectGetMaxY(nSet.itemFrame)) { //比它低的空位被它占用
@@ -391,13 +440,13 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
     }
     
     if (shouldDeleteSet.count > 0) {//删除没空间的空位
-        [self.emptySpaces removeObjectsAtIndexes:shouldDeleteSet];
+        [emptySpaces removeObjectsAtIndexes:shouldDeleteSet];
     }
     
-    [self.emptySpaces addObject:nSet];
+    [emptySpaces addObject:nSet];
     
     //按从低到高排序
-    [self.emptySpaces sortUsingComparator:^NSComparisonResult(WYSpaceIndexSet *obj1, WYSpaceIndexSet *obj2) {
+    [emptySpaces sortUsingComparator:^NSComparisonResult(WYSpaceIndexSet *obj1, WYSpaceIndexSet *obj2) {
         if (CGRectGetMaxY(obj1.itemFrame) == CGRectGetMaxY(obj2.itemFrame)) {
             return obj1.itemFrame.origin.x > obj2.itemFrame.origin.x;
         }
