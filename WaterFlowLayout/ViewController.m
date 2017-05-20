@@ -7,14 +7,33 @@
 //
 
 #import "ViewController.h"
-#import "WYCollectionViewWaterfallLayout.h"
 #import "WYWaterFlowLayout.h"
-#import "WYTestLayout.h"
+#import "CHTCollectionViewWaterfallLayout.h"
 
 #define CELL_COUNT 100
 #define CELL_IDENTIFIER @"WaterfallCell"
 #define HEADER_IDENTIFIER @"WaterfallHeader"
 #define FOOTER_IDENTIFIER @"WaterfallFooter"
+
+@interface WYTestFlowLayout : UICollectionViewFlowLayout
+@end
+@implementation WYTestFlowLayout
+
+- (void)prepareLayout {
+    TICK;
+    [super prepareLayout];
+    TOCK;
+}
+
+- (NSArray<UICollectionViewLayoutAttributes *> *)layoutAttributesForElementsInRect:(CGRect)rect {
+    TICK;
+    NSArray *array = [super layoutAttributesForElementsInRect:rect];
+    TOCK;
+    return array;
+}
+
+@end
+
 
 @interface CHTCollectionViewWaterfallCell : UICollectionViewCell
 @property (nonatomic, strong) UILabel *label;
@@ -30,7 +49,7 @@
 }
 @end
 
-@interface ViewController ()<UICollectionViewDataSource, WYCollectionViewDelegateWaterfallLayout>
+@interface ViewController ()<UICollectionViewDataSource, CHTCollectionViewDelegateWaterfallLayout>
 
 @property (nonatomic, strong) UICollectionView *collectionView;
 @property (nonatomic, strong) NSArray *cellSizes;
@@ -45,27 +64,40 @@ static CGFloat minimumInteritemSpacing = 1;
 - (UICollectionView *)collectionView {
     if (!_collectionView) {
         NSInteger type = 2;
-        WYCollectionViewWaterfallLayout *layout = nil;
+        
+        UIEdgeInsets sectionInset = UIEdgeInsetsMake(1, 0, 1, 0);
+        CGFloat headerHeight = 36;
+        CGFloat footerHeight = 0;
+        
+        UICollectionViewLayout *useLayout = nil;
         if (type == 0) {
-            layout = [[WYCollectionViewWaterfallLayout alloc] init];
+            WYTestFlowLayout *layout = [[WYTestFlowLayout alloc] init];
+            layout.minimumInteritemSpacing = minimumInteritemSpacing;
+            layout.minimumLineSpacing = minimumLineSpacing;
+            layout.sectionInset = sectionInset;
+            layout.headerReferenceSize = CGSizeMake(0, headerHeight);
+            layout.footerReferenceSize = CGSizeMake(0, footerHeight);
+            useLayout = layout;
         } else if (type == 1) {
-            layout = [[WYTestLayout alloc] init];
+            CHTCollectionViewWaterfallLayout *layout = [[CHTCollectionViewWaterfallLayout alloc] init];
+            layout.minimumColumnSpacing = minimumLineSpacing;
+            layout.minimumInteritemSpacing = minimumInteritemSpacing;
+            layout.sectionInset = sectionInset;
+            layout.columnCount  = 8;
+            layout.headerHeight = headerHeight;
+            layout.footerHeight = footerHeight;
+            useLayout = layout;
         } else {
-            layout = [[WYWaterFlowLayout alloc] init];
+            WYWaterFlowLayout *layout = [[WYWaterFlowLayout alloc] init];
+            layout.minimumInteritemSpacing = minimumInteritemSpacing;
+            layout.minimumLineSpacing = minimumLineSpacing;
+            layout.sectionInset = sectionInset;
+            layout.headerReferenceSize = CGSizeMake(0, headerHeight);
+            layout.footerReferenceSize = CGSizeMake(0, footerHeight);
+            useLayout = layout;
         }
         
-        layout.minimumInteritemSpacing = minimumInteritemSpacing;
-        layout.minimumLineSpacing = minimumLineSpacing;
-        layout.sectionInset = UIEdgeInsetsMake(10, 0, 5, 0);
-        layout.headerReferenceSize = CGSizeMake(0, 15);
-        layout.footerReferenceSize = CGSizeMake(0, 10);
-        if ([layout isKindOfClass:[WYCollectionViewWaterfallLayout class]]) {
-            layout.sectionHeadersPinToVisibleBounds = YES;
-            layout.columnCount = 8;
-            layout.firstColumnMultiply = 1;
-        }
-        
-        _collectionView = [[UICollectionView alloc] initWithFrame:self.view.bounds collectionViewLayout:layout];
+        _collectionView = [[UICollectionView alloc] initWithFrame:self.view.bounds collectionViewLayout:useLayout];
         _collectionView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
         _collectionView.dataSource = self;
         _collectionView.delegate = self;
@@ -73,10 +105,10 @@ static CGFloat minimumInteritemSpacing = 1;
         //_collectionView.contentInset = UIEdgeInsetsMake(0, 0, 44, 0);
         [_collectionView registerClass:[CHTCollectionViewWaterfallCell class]
             forCellWithReuseIdentifier:CELL_IDENTIFIER];
-        [_collectionView registerClass:[UICollectionReusableView class]
+        [_collectionView registerClass:[CHTCollectionViewWaterfallCell class]
             forSupplementaryViewOfKind:UICollectionElementKindSectionHeader
                    withReuseIdentifier:HEADER_IDENTIFIER];
-        [_collectionView registerClass:[UICollectionReusableView class]
+        [_collectionView registerClass:[CHTCollectionViewWaterfallCell class]
             forSupplementaryViewOfKind:UICollectionElementKindSectionFooter
                    withReuseIdentifier:FOOTER_IDENTIFIER];
     }
@@ -130,19 +162,25 @@ static CGFloat aItem;
     [self.view addSubview:self.collectionView];
     
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(vc_refreshLayout)];
-    UIBarButtonItem *add = [[UIBarButtonItem alloc] initWithTitle:@"+" style:0 target:self action:@selector(vc_add_andRefreshLayout:)];
-    [add setTitleTextAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:33]} forState:UIControlStateNormal];
-    UIBarButtonItem *sub = [[UIBarButtonItem alloc] initWithTitle:@"-" style:0 target:self action:@selector(vc_add_andRefreshLayout:)];
-    [sub setTitleTextAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:33]} forState:UIControlStateNormal];
-    sub.tag = 1;
-    self.navigationItem.leftBarButtonItems = @[add, sub];
+//    UIBarButtonItem *add = [[UIBarButtonItem alloc] initWithTitle:@"+" style:0 target:self action:@selector(vc_add_andRefreshLayout:)];
+//    [add setTitleTextAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:33]} forState:UIControlStateNormal];
+//    UIBarButtonItem *sub = [[UIBarButtonItem alloc] initWithTitle:@"-" style:0 target:self action:@selector(vc_add_andRefreshLayout:)];
+//    [sub setTitleTextAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:33]} forState:UIControlStateNormal];
+//    sub.tag = 1;
+//    self.navigationItem.leftBarButtonItems = @[add, sub];
 }
 
 - (void)vc_refreshLayout {
     [self.collectionView.collectionViewLayout invalidateLayout];
 }
 
+static NSInteger itemCount = 1;
+
 - (void)vc_add_andRefreshLayout:(UIBarButtonItem *)item {
+    itemCount++;
+    [self.collectionView insertItemsAtIndexPaths:@[[NSIndexPath indexPathForRow:itemCount - 1 inSection:0]]];
+    
+    return;
     aItem += item.tag == 0 ? 10 : -10;
     _cellSizes = nil;
     [UIView animateWithDuration:0.3 animations:^{
@@ -155,35 +193,37 @@ static CGFloat aItem;
 #pragma mark - UICollectionViewDataSource
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    //return 7;
+//    return itemCount;
     return CELL_COUNT;
 }
 
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
-    return 2;
+//    return 1;
     return 1000;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     CHTCollectionViewWaterfallCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:CELL_IDENTIFIER forIndexPath:indexPath];
-    cell.label.backgroundColor = [UIColor lightGrayColor];
+    cell.backgroundColor = [UIColor lightGrayColor];
     cell.label.text = [NSString stringWithFormat:@"%ld", indexPath.item];
     return cell;
 }
 
 - (UICollectionReusableView *)collectionView:(UICollectionView *)collectionView viewForSupplementaryElementOfKind:(NSString *)kind atIndexPath:(NSIndexPath *)indexPath {
-    UICollectionReusableView *reusableView = nil;
+    CHTCollectionViewWaterfallCell *reusableView = nil;
     
     if ([kind isEqualToString:UICollectionElementKindSectionHeader]) {
         reusableView = [collectionView dequeueReusableSupplementaryViewOfKind:kind
                                                           withReuseIdentifier:HEADER_IDENTIFIER
                                                                  forIndexPath:indexPath];
-        reusableView.backgroundColor = [UIColor yellowColor];
+        reusableView.backgroundColor = [UIColor lightGrayColor];
+        reusableView.label.text = @"header";
     } else if ([kind isEqualToString:UICollectionElementKindSectionFooter]) {
         reusableView = [collectionView dequeueReusableSupplementaryViewOfKind:kind
                                                           withReuseIdentifier:FOOTER_IDENTIFIER
                                                                  forIndexPath:indexPath];
-        reusableView.backgroundColor = [UIColor blueColor];
+        reusableView.backgroundColor = [UIColor yellowColor];
+        reusableView.label.text = @"footer";
     }
     
     return reusableView;

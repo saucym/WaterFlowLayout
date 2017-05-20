@@ -1,0 +1,21 @@
+//
+//  PrefixHeader.pch
+//  WaterFlowLayout
+//
+//  Created by saucymqin on 2017/5/20.
+//  Copyright © 2017年 neutron. All rights reserved.
+//
+
+#ifndef PrefixHeader_pch
+#define PrefixHeader_pch
+
+#define TICK   __block NSDate *startTime = [NSDate date]; __block NSDate *endTime = nil;
+#define TOCK   endTime = [NSDate date];NSLog(@"\n\n[%s][Line %d]  duration:%.3f(ms)\n\n", __PRETTY_FUNCTION__, __LINE__, [endTime timeIntervalSinceDate:startTime]*1000);startTime = endTime
+
+#define CHTCollectionElementKindSectionHeader UICollectionElementKindSectionHeader
+#define CHTCollectionElementKindSectionFooter UICollectionElementKindSectionFooter
+
+// Include any system framework and library headers here that should be included in all compilation units.
+// You will also need to set the Prefix Header build setting of one or more of your targets to reference this file.
+
+#endif /* PrefixHeader_pch */

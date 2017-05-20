@@ -6,9 +6,6 @@
 //  Copyright © 2017年 neutron. All rights reserved.
 //
 
-#define TICK   __block NSDate *startTime = [NSDate date]; __block NSDate *endTime = nil;
-#define TOCK   endTime = [NSDate date];NSLog(@"\n\n[%s][Line %d]  duration:%.3f(ms)\n\n", __PRETTY_FUNCTION__, __LINE__, [endTime timeIntervalSinceDate:startTime]*1000);startTime = endTime
-
 #import "WYWaterFlowLayout.h"
 
 static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
@@ -146,10 +143,10 @@ static const NSInteger unionSize = 20;
     }
     
     CGFloat const maxContentWidth = self.collectionView.bounds.size.width - self.collectionView.contentInset.left - self.collectionView.contentInset.right;
-    NSInteger idx = 0;
-    CGFloat top = 0;//self.collectionView.contentInset.top;////这里不需要加top，因为已经体现到bounds上了
     CGFloat const mini_x = self.collectionView.contentInset.left;
     
+    NSInteger idx = 0;
+    CGFloat   top = 0;//self.collectionView.contentInset.top;////这里不需要加top，因为已经体现到bounds上了
     UICollectionViewLayoutAttributes *attributes;
     for (NSInteger section = 0; section < numberOfSections; ++section) {
         /*
@@ -331,6 +328,7 @@ static const NSInteger unionSize = 20;
 }
 
 - (NSArray<UICollectionViewLayoutAttributes *> *)layoutAttributesForElementsInRect:(CGRect)rect {
+    TICK;
     NSInteger i;
     NSInteger begin = 0, end = self.unionRects.count;
     NSMutableArray *attrs = [NSMutableArray array];
@@ -356,32 +354,7 @@ static const NSInteger unionSize = 20;
         }
      }
     
-    /*
-    NSInteger begin = 0, end = self.allAttributes.count;
-    NSMutableArray *attrs = [NSMutableArray array];
-    for (i = 0; i < self.allAttributes.count; i++) {
-        if (CGRectIntersectsRect(rect, [self.allAttributes[i] frame])) {
-            begin = i;
-            break;
-        }
-    }
-    
-    for (i = self.allAttributes.count - 1; i >= 0; i--) {
-        if (CGRectIntersectsRect(rect, [self.allAttributes[i] frame])) {
-            end = MIN((i + 1), self.allAttributes.count);
-            break;
-        }
-    }
-    
-    for (i = begin; i < end; i++) {
-        UICollectionViewLayoutAttributes *attr = self.allAttributes[i];
-        if (CGRectIntersectsRect(rect, attr.frame)) {
-            [attrs addObject:attr];
-        }
-    }
-     
-     */
-    
+    TOCK;
     return [NSArray arrayWithArray:attrs];
 }
 

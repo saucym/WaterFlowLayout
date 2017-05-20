@@ -14,8 +14,7 @@
 		931F0FA71ECAF3A90097DF2D /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 931F0FA51ECAF3A90097DF2D /* LaunchScreen.storyboard */; };
 		931F0FB21ECAF3A90097DF2D /* WaterFlowLayoutUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 931F0FB11ECAF3A90097DF2D /* WaterFlowLayoutUITests.m */; };
 		931F0FC01ECAF7930097DF2D /* WYWaterFlowLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 931F0FBF1ECAF7930097DF2D /* WYWaterFlowLayout.m */; };
-		931F0FC31ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 931F0FC21ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.m */; };
-		93A6DABC1ECE8FC5009C0DD1 /* WYTestLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 93A6DABB1ECE8FC5009C0DD1 /* WYTestLayout.m */; };
+		93E0E4B71ED020FA00AEF32F /* CHTCollectionViewWaterfallLayout.m in Sources */ = {isa = PBXBuildFile; fileRef = 93E0E4B61ED020FA00AEF32F /* CHTCollectionViewWaterfallLayout.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,10 +43,9 @@
 		931F0FBC1ECAF77D0097DF2D /* README.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = README.md; sourceTree = "<group>"; };
 		931F0FBE1ECAF7930097DF2D /* WYWaterFlowLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WYWaterFlowLayout.h; sourceTree = "<group>"; };
 		931F0FBF1ECAF7930097DF2D /* WYWaterFlowLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WYWaterFlowLayout.m; sourceTree = "<group>"; };
-		931F0FC11ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WYCollectionViewWaterfallLayout.h; sourceTree = "<group>"; };
-		931F0FC21ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WYCollectionViewWaterfallLayout.m; sourceTree = "<group>"; };
-		93A6DABA1ECE8FC5009C0DD1 /* WYTestLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WYTestLayout.h; sourceTree = "<group>"; };
-		93A6DABB1ECE8FC5009C0DD1 /* WYTestLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WYTestLayout.m; sourceTree = "<group>"; };
+		93E0E4B51ED020FA00AEF32F /* CHTCollectionViewWaterfallLayout.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CHTCollectionViewWaterfallLayout.h; sourceTree = "<group>"; };
+		93E0E4B61ED020FA00AEF32F /* CHTCollectionViewWaterfallLayout.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CHTCollectionViewWaterfallLayout.m; sourceTree = "<group>"; };
+		93E0E4B81ED0235000AEF32F /* PrefixHeader.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PrefixHeader.pch; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -90,10 +88,8 @@
 		931F0F961ECAF3A90097DF2D /* WaterFlowLayout */ = {
 			isa = PBXGroup;
 			children = (
-				931F0FC11ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.h */,
-				931F0FC21ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.m */,
-				93A6DABA1ECE8FC5009C0DD1 /* WYTestLayout.h */,
-				93A6DABB1ECE8FC5009C0DD1 /* WYTestLayout.m */,
+				93E0E4B51ED020FA00AEF32F /* CHTCollectionViewWaterfallLayout.h */,
+				93E0E4B61ED020FA00AEF32F /* CHTCollectionViewWaterfallLayout.m */,
 				931F0FBE1ECAF7930097DF2D /* WYWaterFlowLayout.h */,
 				931F0FBF1ECAF7930097DF2D /* WYWaterFlowLayout.m */,
 				931F0F9A1ECAF3A90097DF2D /* AppDelegate.h */,
@@ -112,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				931F0F981ECAF3A90097DF2D /* main.m */,
+				93E0E4B81ED0235000AEF32F /* PrefixHeader.pch */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -231,8 +228,7 @@
 				931F0F9F1ECAF3A90097DF2D /* ViewController.m in Sources */,
 				931F0FC01ECAF7930097DF2D /* WYWaterFlowLayout.m in Sources */,
 				931F0F9C1ECAF3A90097DF2D /* AppDelegate.m in Sources */,
-				93A6DABC1ECE8FC5009C0DD1 /* WYTestLayout.m in Sources */,
-				931F0FC31ECAF7C90097DF2D /* WYCollectionViewWaterfallLayout.m in Sources */,
+				93E0E4B71ED020FA00AEF32F /* CHTCollectionViewWaterfallLayout.m in Sources */,
 				931F0F991ECAF3A90097DF2D /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -362,6 +358,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 8KXRR88TU3;
+				GCC_PREFIX_HEADER = WaterFlowLayout/PrefixHeader.pch;
 				INFOPLIST_FILE = WaterFlowLayout/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.neutron.WaterFlowLayout;
@@ -374,6 +371,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				DEVELOPMENT_TEAM = 8KXRR88TU3;
+				GCC_PREFIX_HEADER = WaterFlowLayout/PrefixHeader.pch;
 				INFOPLIST_FILE = WaterFlowLayout/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = com.neutron.WaterFlowLayout;
