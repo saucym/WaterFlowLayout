@@ -94,6 +94,7 @@ static CGFloat minimumInteritemSpacing = 1;
             layout.sectionInset = sectionInset;
             layout.headerReferenceSize = CGSizeMake(0, headerHeight);
             layout.footerReferenceSize = CGSizeMake(0, footerHeight);
+            layout.miniItemWidth = 10;
             useLayout = layout;
         }
         
@@ -121,6 +122,10 @@ static CGFloat aItem;
     if (!_cellSizes) {
         NSInteger count = 10;
         NSMutableArray *array = [NSMutableArray arrayWithCapacity:count];
+//        for (NSInteger i = 0; i < 100; i++) {
+//            [self addSizeToArray:array widthCount:1 + arc4random() % 5 heightCount:1 + arc4random() % 4];
+//        }
+        
         [self addSizeToArray:array widthCount:1 heightCount:3];
         [self addSizeToArray:array widthCount:1 heightCount:2];
         [self addSizeToArray:array widthCount:1 heightCount:1];
@@ -178,7 +183,11 @@ static NSInteger itemCount = 1;
 
 - (void)vc_add_andRefreshLayout:(UIBarButtonItem *)item {
     itemCount += item.tag == 0 ? 1 : -1;
-    [self.collectionView insertItemsAtIndexPaths:@[[NSIndexPath indexPathForRow:itemCount - 1 inSection:0]]];
+    if (item.tag == 0) {
+        [self.collectionView insertItemsAtIndexPaths:@[[NSIndexPath indexPathForRow:itemCount - 1 inSection:0]]];
+    } else {
+        [self.collectionView deleteItemsAtIndexPaths:@[[NSIndexPath indexPathForRow:itemCount inSection:0]]];
+    }
     
     return;
     aItem += item.tag == 0 ? 10 : -10;
@@ -193,13 +202,13 @@ static NSInteger itemCount = 1;
 #pragma mark - UICollectionViewDataSource
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return itemCount;
+//    return itemCount;
     return CELL_COUNT;
 }
 
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
-    return 1;
-//    return 1000;
+//    return 1;
+    return 1000;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
