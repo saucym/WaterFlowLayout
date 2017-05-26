@@ -13,7 +13,7 @@
 <img src="WYWaterFlowLayout.gif" width="300" height="514" alt="WYWaterFlowLayout.gif"/>    
 为了这个理想布局我开始了撸代码。    
 
-这里首先打下草稿定下几点实现思路    
+这里首先打下草稿定下几点实现思路(这里就不讲layout定制的基础教程了，[网上一大片](http://www.jianshu.com/p/a2b2e2af9907))    
 1.布局方向采用从上到下从左到右(就类似下的雨留到河流里面的继续往海里流一样)    
 2.所有复杂页面的布局都能通过业务层给出适当的size实现    
 3.完全可以像系统的UICollectionViewFlowLayout一样使用    
@@ -43,7 +43,7 @@ WYWaterFlowLayout                     |   160.849ms         |   0.209ms         
 - (CGRect)willAddItemWithSize:(CGSize)size maxWidth:(CGFloat)maxWidth maxTop:(CGFloat *)p_top withSpaces:(NSMutableArray<WYSpaceIndexSet *> *)emptySpaces
 ```    
 
-这个函数主要是传入一个需要布局的item的size、布局所在的宽度和空白位置记录数据，返回这个item的frame和当前布局到的最大y坐标，函数主要是做了三件事    
+这个函数主要是传入一个需要布局的item的size、布局所在的宽度和空白位置记录数据，返回这个item的frame和当前布局到的最大y坐标，这个函数也是这个布局最核心的函数了，函数主要是做了三件事    
 1.根据已有空位记录找到要插入的item可以放的位置    
 2.更新空白位置记录，比插入item低的空位被它占用，比插入item高的会占用当前的空位    
 3.把空位记录按低到高左到右排序    
