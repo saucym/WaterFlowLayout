@@ -26,17 +26,17 @@
 
 function                              |   preparLayout      |   layoutAttributesForElementsInRect        |    内存使用(1条数据的时候4.9MB)    
 ------------                          |   ---               |   -----------                              |    ----------                  
-UICollectionViewFlowLayout            |   258.518ms         |   1.100ms                                  |    20.9MB
-CHTCollectionViewWaterfallLayout      |   864.026ms         |   1.613ms                                  |    35.6MB
-WYWaterFlowLayout                     |   1645.468ms        |   1.616ms                                  |    51.6MB
+UICollectionViewFlowLayout            |   258.518 ms        |   1.100 ms                                 |    20.9 MB
+CHTCollectionViewWaterfallLayout      |   864.026 ms        |   1.613 ms                                 |    35.6 MB
+WYWaterFlowLayout                     |   2292.417 ms       |   2.088 ms                                 |    51.6 MB
 
 当然10万数据有点大  这里给个1万数据的测试    
 
 function                              |   preparLayout      |   layoutAttributesForElementsInRect        |    内存使用    
 ------------                          |   ---               |   -----------                              |    ----------                
-UICollectionViewFlowLayout            |   25.087ms          |   0.614ms                                  |    6.7MB
-CHTCollectionViewWaterfallLayout      |   80.257ms          |   0.271ms                                  |    8.8MB
-WYWaterFlowLayout                     |   160.849ms         |   0.209ms                                  |    10.3MB
+UICollectionViewFlowLayout            |   25.087 ms         |   0.614 ms                                 |    6.7 MB
+CHTCollectionViewWaterfallLayout      |   80.257 ms         |   0.271 ms                                 |    8.8 MB
+WYWaterFlowLayout                     |   160.849 ms        |   0.209 ms                                 |    10.3 MB
 
 &emsp;看这个测试数据勉强还能接受，除了布局时间长一点，滑动性能还可以，基本算可以使用了。但是对于一个励志要改变世界的程序员来说必须得追求极限，这里跟CHTCollectionViewWaterfallLayout对比性能相差了将近一倍，性能瓶颈主要在下面这个函数，因为10万数据的测试1645.468ms里面有1200ms都是这个函数消耗的,通过优化这个函数可以大幅度提升性能。    
 ```Objective-C     
@@ -49,4 +49,27 @@ WYWaterFlowLayout                     |   160.849ms         |   0.209ms         
 3.把空位记录按低到高左到右排序    
     
 生活中一切目标都能通过解决N个问题实现  ----  刚想出来的。
-这里争取只遍历一遍就完成查找排序更新，想到就做。
+这里争取只遍历一遍就完成查找排序更新，想到就做。首先这里通过优化排序算法，把2292.417ms的运算时间降低到了1220.73ms；然后通过简化数据结构把运算时间降低到1000ms左右，勉强可用了。
+
+下面附上简化后的性能测试数据（测试设备:iPhone6，数据量:10万）    
+
+function                              |   preparLayout      |   layoutAttributesForElementsInRect        |    内存使用(1条数据的时候4.9MB)    
+------------                          |   ---               |   -----------                              |    ----------                  
+UICollectionViewFlowLayout            |   258.518 ms        |   1.100 ms                                 |    20.9 MB
+CHTCollectionViewWaterfallLayout      |   864.026 ms        |   1.613 ms                                 |    35.6 MB
+WYWaterFlowLayout                     |   1076.112 ms       |   1.776 ms                                 |    50.4 MB
+
+当然10万数据有点大  这里给个1万数据的测试    
+
+function                              |   preparLayout      |   layoutAttributesForElementsInRect        |    内存使用    
+------------                          |   ---               |   -----------                              |    ----------                
+UICollectionViewFlowLayout            |   25.087 ms         |   0.614 ms                                 |    6.7 MB
+CHTCollectionViewWaterfallLayout      |   80.257 ms         |   0.271 ms                                 |    8.8 MB
+WYWaterFlowLayout                     |   98.604 ms         |   0.246 ms                                 |    10.4 MB
+
+这里跟CHTCollectionViewWaterfallLayout的性能已经很接近了，在复杂度提高的情况下能把性能控制得差不多这里也算基本满意了。
+后续可以继续优化这里的计算，以及像素点对齐。
+
+License
+-------
+WYWaterFlowLayout is available under the MIT license. See the LICENSE file for more info.

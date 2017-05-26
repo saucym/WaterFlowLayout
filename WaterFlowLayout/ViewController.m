@@ -208,7 +208,7 @@ static NSInteger itemCount = 1;
 
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
 //    return 1;
-    return 1000;
+    return 100;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {

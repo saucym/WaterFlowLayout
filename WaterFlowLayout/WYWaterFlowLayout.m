@@ -14,14 +14,18 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
 }
 
 @interface WYSpaceIndexSet : NSMutableIndexSet //用于保存空位
-@property (nonatomic, readonly) CGRect itemFrame;
+@property (nonatomic, readonly) CGFloat maxY;
+@property (nonatomic, readonly) CGFloat x;
+@property (nonatomic, readonly) CGFloat width;
 @end
 
 @implementation WYSpaceIndexSet
 
 + (instancetype)indexSetWithFrame:(CGRect)frame maxWidth:(CGFloat)maxWidth {
     WYSpaceIndexSet *set = [[self alloc] init];
-    set->_itemFrame = frame;
+    set->_maxY = CGRectGetMaxY(frame);
+    set->_x = frame.origin.x;
+    set->_width = frame.size.width;
     [set addIndexesInRange:NSMakeRange(0, maxWidth)];
     
     return set;
@@ -220,7 +224,7 @@ static const NSInteger unionSize = 20;
                     itemSize.width = maxWidth;
                 }
                 
-                CGRect rect = [self willAddItemWithSize:itemSize maxWidth:maxWidth maxTop:&top withSpaces:emptySpaces];
+                CGRect rect = [self calculationRectWithItemWithSize:itemSize maxWidth:maxWidth maxTop:&top withSpaces:emptySpaces];
                 rect.origin.x   += _minimumInteritemSpacing + sectionInset.left;
                 rect.size.width -= _minimumInteritemSpacing;
                 
@@ -361,16 +365,16 @@ static const NSInteger unionSize = 20;
     return NO;
 }
 
-//TODO:可以仔细研究下这里面的计算 看是否有优化空间，这里调用太频繁了
-- (CGRect)willAddItemWithSize:(CGSize)size maxWidth:(CGFloat)maxWidth maxTop:(CGFloat *)p_top withSpaces:(NSMutableArray<WYSpaceIndexSet *> *)spaceArray {
+//根据size计算新item的位置，并且更新空白位置信息
+- (CGRect)calculationRectWithItemWithSize:(CGSize)size maxWidth:(CGFloat)maxWidth maxTop:(CGFloat *)p_top withSpaces:(NSMutableArray<WYSpaceIndexSet *> *)spaceArray {
     __block CGPoint point = CGPointZero;
     __block NSInteger spaceIndex = 0;
-    //对比已有的空位找到一个能放下的size空位 (这里绝对能找到，因为有一个顶部空位做初始值)
-    [spaceArray enumerateObjectsUsingBlock:^(WYSpaceIndexSet *set, NSUInteger idx, BOOL *stop) {
-        [set enumerateRangesUsingBlock:^(NSRange range, BOOL * _Nonnull stopSet) {
+    /**< 对比已有的空位找到一个能放下的size空位 (这里绝对能找到，因为有一个顶部空位做初始值) */
+    [spaceArray enumerateObjectsUsingBlock:^(WYSpaceIndexSet *obj, NSUInteger idx, BOOL *stop) {
+        [obj enumerateRangesUsingBlock:^(NSRange range, BOOL *stopSet) {
             if (range.length >= size.width) {
                 point.x = range.location;
-                point.y = CGRectGetMaxY(set.itemFrame);
+                point.y = obj.maxY;
                 spaceIndex = idx + 1; //找到一个初始位置，这个位置是可能比实际需要放的位置要靠前，后面枚举的时候再进一步调整该位置
                 *stop = YES;
                 *stopSet = YES;
@@ -382,13 +386,13 @@ static const NSInteger unionSize = 20;
     WYSpaceIndexSet *spaceObj = [WYSpaceIndexSet indexSetWithFrame:rect maxWidth:maxWidth];
     
     NSMutableIndexSet *shouldDeleteSet = [NSMutableIndexSet indexSet];
-    __block CGFloat top = CGRectGetMaxY(spaceObj.itemFrame);
-    //对空位进行处理，比它低的空位被它占用，比他高的会占用它的空位
-    [spaceArray enumerateObjectsUsingBlock:^(WYSpaceIndexSet * _Nonnull obj, NSUInteger idx, BOOL * _Nonnull stop) {//spaceArray 是有序的，这里是按低到高枚举
-        if (CGRectGetMaxY(obj.itemFrame) > CGRectGetMaxY(spaceObj.itemFrame)) {
-            [spaceObj removeIndexesInRange:NSMakeRange(obj.itemFrame.origin.x, obj.itemFrame.size.width)];//比他高的会占用它的空位
-        } else if (CGRectGetMaxY(obj.itemFrame) < CGRectGetMaxY(spaceObj.itemFrame)) {
-            [obj removeIndexesInRange:NSMakeRange(spaceObj.itemFrame.origin.x, spaceObj.itemFrame.size.width)];//比它低的空位被它占用
+    __block CGFloat top = spaceObj.maxY;
+    /**< 对空位进行处理，比它低的空位被它占用，比他高的会占用它的空位 */
+    [spaceArray enumerateObjectsUsingBlock:^(WYSpaceIndexSet *obj, NSUInteger idx, BOOL *stop) {//spaceArray 是有序的，这里是按低到高枚举
+        if (obj.maxY > spaceObj.maxY) {
+            [spaceObj removeIndexesInRange:NSMakeRange(obj.x, obj.width)];//比他高的会占用它的空位
+        } else if (obj.maxY < spaceObj.maxY) {
+            [obj removeIndexesInRange:NSMakeRange(spaceObj.x, spaceObj.width)];//比它低的空位被它占用
             if (obj.count < self.miniItemWidth + self.minimumInteritemSpacing) { //这一行已经没有空位了需要删除掉
                 [shouldDeleteSet addIndex:idx];
             }
@@ -397,24 +401,23 @@ static const NSInteger unionSize = 20;
                 spaceIndex = idx + 1; //调整位置到比他它矮的位置后面
             }
         } else if (spaceIndex < idx + 1) {
-            if (obj.itemFrame.origin.x < spaceObj.itemFrame.origin.x) {//跟它一样高并且在它左边，那么它的位置可以调整
+            if (obj.x < spaceObj.x) {//跟它一样高并且在它左边，那么它的位置可以调整
                 spaceIndex = idx + 1;
             }
         }
         
-        if (CGRectGetMaxY(obj.itemFrame) > top) {
-            top = CGRectGetMaxY(obj.itemFrame);
+        if (obj.maxY > top) {
+            top = obj.maxY;
         }
     }];
     
-    if (p_top) {
-        *p_top = top;
-    }
-    
     [spaceArray insertObject:spaceObj atIndex:spaceIndex];
-    
     if (shouldDeleteSet.count > 0) {//删除没空间的空位
         [spaceArray removeObjectsAtIndexes:shouldDeleteSet];
+    }
+    
+    if (p_top) {
+        *p_top = top;
     }
     
     return rect;
