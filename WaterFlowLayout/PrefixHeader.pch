@@ -10,7 +10,7 @@
 #define PrefixHeader_pch
 
 #define TICK   __block NSDate *startTime = [NSDate date]; __block NSDate *endTime = nil;
-#define TOCK   endTime = [NSDate date];NSLog(@"\n\n[%s][Line %d]  duration:%.3f(ms)\n\n", __PRETTY_FUNCTION__, __LINE__, [endTime timeIntervalSinceDate:startTime]*1000);startTime = endTime
+#define TOCK   endTime = [NSDate date];NSLog(@"[%s][Line %d]  duration:%.3f(ms)\n\n", __PRETTY_FUNCTION__, __LINE__, [endTime timeIntervalSinceDate:startTime]*1000);startTime = endTime
 
 #define CHTCollectionElementKindSectionHeader UICollectionElementKindSectionHeader
 #define CHTCollectionElementKindSectionFooter UICollectionElementKindSectionFooter

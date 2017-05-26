@@ -27,6 +27,6 @@
 @property (nonatomic, assign) UIEdgeInsets headerInset; /**< default UIEdgeInsetsZero */
 @property (nonatomic, assign) UIEdgeInsets footerInset; /**< default UIEdgeInsetsZero */
 
-@property (nonatomic, assign) CGFloat miniItemWidth;    /**< default 30 */
+@property (nonatomic, assign) CGFloat miniItemWidth;    /**< default 10 */
 
 @end

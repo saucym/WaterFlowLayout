@@ -162,12 +162,12 @@ static CGFloat aItem;
     [self.view addSubview:self.collectionView];
     
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(vc_refreshLayout)];
-//    UIBarButtonItem *add = [[UIBarButtonItem alloc] initWithTitle:@"+" style:0 target:self action:@selector(vc_add_andRefreshLayout:)];
-//    [add setTitleTextAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:33]} forState:UIControlStateNormal];
-//    UIBarButtonItem *sub = [[UIBarButtonItem alloc] initWithTitle:@"-" style:0 target:self action:@selector(vc_add_andRefreshLayout:)];
-//    [sub setTitleTextAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:33]} forState:UIControlStateNormal];
-//    sub.tag = 1;
-//    self.navigationItem.leftBarButtonItems = @[add, sub];
+    UIBarButtonItem *add = [[UIBarButtonItem alloc] initWithTitle:@"+" style:0 target:self action:@selector(vc_add_andRefreshLayout:)];
+    [add setTitleTextAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:33]} forState:UIControlStateNormal];
+    UIBarButtonItem *sub = [[UIBarButtonItem alloc] initWithTitle:@"-" style:0 target:self action:@selector(vc_add_andRefreshLayout:)];
+    [sub setTitleTextAttributes:@{NSFontAttributeName : [UIFont systemFontOfSize:33]} forState:UIControlStateNormal];
+    sub.tag = 1;
+    self.navigationItem.leftBarButtonItems = @[add, sub];
 }
 
 - (void)vc_refreshLayout {
@@ -177,7 +177,7 @@ static CGFloat aItem;
 static NSInteger itemCount = 1;
 
 - (void)vc_add_andRefreshLayout:(UIBarButtonItem *)item {
-    itemCount++;
+    itemCount += item.tag == 0 ? 1 : -1;
     [self.collectionView insertItemsAtIndexPaths:@[[NSIndexPath indexPathForRow:itemCount - 1 inSection:0]]];
     
     return;
@@ -193,13 +193,13 @@ static NSInteger itemCount = 1;
 #pragma mark - UICollectionViewDataSource
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-//    return itemCount;
+    return itemCount;
     return CELL_COUNT;
 }
 
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
-//    return 1;
-    return 1000;
+    return 1;
+//    return 1000;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {

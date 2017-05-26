@@ -54,7 +54,7 @@ static const NSInteger unionSize = 20;
     _headerInset  = UIEdgeInsetsZero;
     _footerInset  = UIEdgeInsetsZero;
     _columnCount  = 4;
-    _miniItemWidth = 30;
+    _miniItemWidth = 10;
     [self recalculateItemSizeWithColumnCount:_columnCount];
 }
 
@@ -122,7 +122,7 @@ static const NSInteger unionSize = 20;
 }
 
 - (void)recalculateItemSizeWithColumnCount:(NSInteger)columnCount {
-    CGFloat width = ([UIScreen mainScreen].bounds.size.width - self.sectionInset.left - self.sectionInset.right - (columnCount - 1) * self.minimumInteritemSpacing) / columnCount;
+    CGFloat width = ([UIScreen mainScreen].bounds.size.width - self.sectionInset.left - self.sectionInset.right - self.collectionView.contentInset.left - self.collectionView.contentInset.right - (columnCount - 1) * self.minimumInteritemSpacing) / columnCount;
     self.itemSize  = CGSizeMake(WYWaterFlowLayoutFloorCGFloat(width), WYWaterFlowLayoutFloorCGFloat(width));
 }
 
@@ -145,13 +145,10 @@ static const NSInteger unionSize = 20;
     CGFloat const maxContentWidth = self.collectionView.bounds.size.width - self.collectionView.contentInset.left - self.collectionView.contentInset.right;
     CGFloat const mini_x = self.collectionView.contentInset.left;
     
-    NSInteger idx = 0;
     CGFloat   top = 0;//self.collectionView.contentInset.top;////这里不需要加top，因为已经体现到bounds上了
     UICollectionViewLayoutAttributes *attributes;
     for (NSInteger section = 0; section < numberOfSections; ++section) {
-        /*
-         * 1. Section header
-         */
+        /**< 1. Section header */
         CGFloat headerHeight;
         if ([self.delegate respondsToSelector:@selector(collectionView:layout:referenceSizeForHeaderInSection:)]) {
             headerHeight = [self.delegate collectionView:self.collectionView layout:self referenceSizeForHeaderInSection:section].height;
@@ -178,10 +175,7 @@ static const NSInteger unionSize = 20;
             top += headerHeight + headerInset.bottom;
         }
         
-        
-        /*
-         * 2. Section items
-         */
+        /**< 2. Section items */
         NSInteger itemCount = [self.collectionView numberOfItemsInSection:section];
         NSMutableArray<UICollectionViewLayoutAttributes *> *itemAttributes = [NSMutableArray arrayWithCapacity:itemCount];
         if (itemCount > 0) {
@@ -209,8 +203,8 @@ static const NSInteger unionSize = 20;
             NSMutableArray<WYSpaceIndexSet *> *emptySpaces = [NSMutableArray arrayWithCapacity:20];//用于缓存当前的布局状态
             [emptySpaces addObject:[WYSpaceIndexSet indexSetWithFrame:CGRectMake(0, top, 0, 0) maxWidth:maxWidth]];
             
-            for (idx = 0; idx < itemCount; idx++) {
-                NSIndexPath *indexPath = [NSIndexPath indexPathForItem:idx inSection:section];
+            for (NSInteger item = 0; item < itemCount; item++) {
+                NSIndexPath *indexPath = [NSIndexPath indexPathForItem:item inSection:section];
                 
                 CGSize itemSize;
                 if ([self.delegate respondsToSelector:@selector(collectionView:layout:sizeForItemAtIndexPath:)]) {
@@ -244,9 +238,7 @@ static const NSInteger unionSize = 20;
         
         [self.itemsAttributes addObject:itemAttributes];
         
-        /*
-         * 3. Section footer
-         */
+        /**< 3. Section footer */
         CGFloat footerHeight;
         if ([self.delegate respondsToSelector:@selector(collectionView:layout:referenceSizeForFooterInSection:)]) {
             footerHeight = [self.delegate collectionView:self.collectionView layout:self referenceSizeForFooterInSection:section].height;
@@ -276,7 +268,7 @@ static const NSInteger unionSize = 20;
     self.maxContentBottom = top;
     
     // 把20个作为一组计算出一个超集rect，主要用来加上滑动时定位
-    idx = 0;
+    NSInteger idx = 0;
     NSInteger itemCounts = [self.allAttributes count];
     while (idx < itemCounts) {
         CGRect unionRect = ((UICollectionViewLayoutAttributes *)self.allAttributes[idx]).frame;
@@ -310,9 +302,11 @@ static const NSInteger unionSize = 20;
     if (path.section >= [self.itemsAttributes count]) {
         return nil;
     }
+    
     if (path.item >= [self.itemsAttributes[path.section] count]) {
         return nil;
     }
+    
     return (self.itemsAttributes[path.section])[path.item];
 }
 
