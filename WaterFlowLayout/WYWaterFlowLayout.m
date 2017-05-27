@@ -3,10 +3,18 @@
 //  WaterFlowLayout
 //
 //  Created by saucymqin on 2017/5/16.
-//  Copyright © 2017年 neutron. All rights reserved.
+//  Copyright © 2017年 saucym. All rights reserved.
 //
 
 #import "WYWaterFlowLayout.h"
+
+#ifndef TICK
+#define TICK
+#endif
+
+#ifndef TOCK
+#define TOCK
+#endif
 
 static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
     CGFloat scale = [UIScreen mainScreen].scale;
