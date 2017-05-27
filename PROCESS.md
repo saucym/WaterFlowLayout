@@ -16,7 +16,7 @@
 这里首先打下草稿定下几点实现思路(这里就不讲layout定制的基础教程了，[网上一大片](http://www.jianshu.com/p/a2b2e2af9907))    
 1.布局方向采用从上到下从左到右(就类似下的雨留到河流里面的继续往海里流一样)    
 2.所有复杂页面的布局都能通过业务层给出适当的size实现    
-3.完全可以像系统的UICollectionViewFlowLayout一样使用    
+3.完全可以像系统的UICollectionViewFlowLayout一样使用，这里接口几乎跟系统API一毛一样    
 4.理想状态是性能要高    
 
 

@@ -18,7 +18,6 @@
 
 @property (nonatomic) CGFloat minimumLineSpacing;       /**< 竖直方向间距 deafult 1 */
 @property (nonatomic) CGFloat minimumInteritemSpacing;  /**< 水平方向间距 default 1 */
-@property (nonatomic, assign) NSInteger  columnCount;   /**< 列数 default 4 */
 @property (nonatomic, assign) CGSize itemSize;          /**< 每一个cell的默认大小 默认正方形 */
 @property (nonatomic, assign) UIEdgeInsets sectionInset;/**< default UIEdgeInsetsZero */
 

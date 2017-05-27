@@ -179,7 +179,7 @@ static CGFloat aItem;
     [self.collectionView.collectionViewLayout invalidateLayout];
 }
 
-static NSInteger itemCount = 1;
+static NSInteger itemCount = 10;
 
 - (void)vc_add_andRefreshLayout:(UIBarButtonItem *)item {
     itemCount += item.tag == 0 ? 1 : -1;
@@ -202,12 +202,12 @@ static NSInteger itemCount = 1;
 #pragma mark - UICollectionViewDataSource
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-//    return itemCount;
+    return itemCount;
     return CELL_COUNT;
 }
 
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
-//    return 1;
+    return 1;
     return 100;
 }
 

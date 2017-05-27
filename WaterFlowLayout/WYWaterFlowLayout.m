@@ -51,6 +51,7 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
 @property (nonatomic, strong) NSMutableArray<UICollectionViewLayoutAttributes *> *allAttributes;
 @property (nonatomic, strong) NSMutableArray *unionRects;/// Array to store union rectangles
 @property (nonatomic, assign) CGFloat maxContentBottom;
+@property (nonatomic, assign) NSInteger  columnCount;   /**< 列数 default 4 */
 
 @end
 
