@@ -1,5 +1,5 @@
 # WYWaterFlowLayout 像河流一样的布局
-&emsp;&emsp;做项目的时候遇到一些界面需要的布局非常自由而网上搜了一些开源的代码都没找到一个理想的，于是自己就准备写一种比较理想的布局，一种可以像系统的UICollectionViewFlowLayout一样从左到右的流式布局，又能像CHTCollectionViewWaterfallLayout一样的从上到下瀑布流布局，想到就做(就算不能一步到位也可以慢慢实现直到解决问题)。     
+&emsp;&emsp;做项目的时候遇到一些界面需要的布局非常自由而网上搜了一些开源的代码都没找到一个理想的，于是自己就准备写一种比较理想的布局，一种可以像系统的UICollectionViewFlowLayout一样从左到右的流式布局，又能像CHTCollectionViewWaterfallLayout一样的从上到下瀑布流布局，并且完全能兼容这两种布局的能力，想到就做(就算不能一步到位也可以慢慢实现直到解决问题)。     
 
 这里首先来看一下UICollectionViewFlowLayout的一种布局情况    
 <img src="UICollectionViewFlowLayout.gif" width="300" height="514" alt="UICollectionViewFlowLayout.gif"/>    

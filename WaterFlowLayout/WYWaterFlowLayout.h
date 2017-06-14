@@ -14,18 +14,35 @@
 - (UIEdgeInsets)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout insetForFooterInSection:(NSInteger)section;
 @end
 
-@interface WYWaterFlowLayout : UICollectionViewLayout
+@protocol WYFlowLayoutProtocol <NSObject>
 
-@property (nonatomic) CGFloat minimumLineSpacing;       /**< 竖直方向间距 deafult 1 */
-@property (nonatomic) CGFloat minimumInteritemSpacing;  /**< 水平方向间距 default 1 */
-@property (nonatomic, assign) CGSize itemSize;          /**< 每一个cell的默认大小 默认正方形 */
-@property (nonatomic, assign) UIEdgeInsets sectionInset;/**< default UIEdgeInsetsZero */
+@property (nonatomic) CGFloat minimumLineSpacing;
+@property (nonatomic) CGFloat minimumInteritemSpacing;
+@property (nonatomic) CGSize itemSize;
+@property (nonatomic) UICollectionViewScrollDirection scrollDirection;
+@property (nonatomic) CGSize headerReferenceSize;
+@property (nonatomic) CGSize footerReferenceSize;
+@property (nonatomic) UIEdgeInsets sectionInset;
 
-@property (nonatomic, assign) CGSize headerReferenceSize;
-@property (nonatomic, assign) CGSize footerReferenceSize;
+@end
+
+@interface WYWaterFlowLayout : UICollectionViewLayout<WYFlowLayoutProtocol>
+
 @property (nonatomic, assign) UIEdgeInsets headerInset; /**< default UIEdgeInsetsZero */
 @property (nonatomic, assign) UIEdgeInsets footerInset; /**< default UIEdgeInsetsZero */
+@property (nonatomic, assign) CGFloat miniItemWidth;    /**< default 10 这个值越大布局速度越快 */
 
-@property (nonatomic, assign) CGFloat miniItemWidth;    /**< default 30 */
+#pragma mark - WYFlowLayoutProtocol
+@property (nonatomic) CGFloat minimumLineSpacing;
+@property (nonatomic) CGFloat minimumInteritemSpacing;
+@property (nonatomic) CGSize itemSize;
+@property (nonatomic) UICollectionViewScrollDirection scrollDirection; // default is UICollectionViewScrollDirectionVertical TODO:UICollectionViewScrollDirectionHorizontal 还未实现
+@property (nonatomic) CGSize headerReferenceSize;
+@property (nonatomic) CGSize footerReferenceSize;
+@property (nonatomic) UIEdgeInsets sectionInset;
 
+@end
+
+
+@interface UICollectionViewFlowLayout (WYFlowLayoutProtocol)<WYFlowLayoutProtocol>
 @end

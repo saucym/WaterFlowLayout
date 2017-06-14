@@ -21,7 +21,7 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
     return floor(value * scale) / scale;
 }
 
-@interface WYSpaceIndexSet : NSMutableIndexSet //用于保存空位
+@interface WYSpaceIndexSet : NSMutableIndexSet //用于保存一个矩形的位置和大小以及矩形底部那条线上的空位
 @property (nonatomic, readonly) CGFloat maxY;
 @property (nonatomic, readonly) CGFloat x;
 @property (nonatomic, readonly) CGFloat width;
@@ -64,6 +64,7 @@ static const NSInteger unionSize = 20;
 - (void)commonInit {
     _minimumLineSpacing  = 1;
     _minimumInteritemSpacing  = 1;
+    _scrollDirection = UICollectionViewScrollDirectionVertical;
     _headerInset  = UIEdgeInsetsZero;
     _footerInset  = UIEdgeInsetsZero;
     _columnCount  = 4;
@@ -139,7 +140,7 @@ static const NSInteger unionSize = 20;
     self.itemSize  = CGSizeMake(WYWaterFlowLayoutFloorCGFloat(width), WYWaterFlowLayoutFloorCGFloat(width));
 }
 
-- (void)prepareLayout {
+- (void)prepareLayout { //TODO: 使用UICollectionViewLayoutInvalidationContext优化布局计算 这个网站有详细的介绍 http://www.jianshu.com/p/97e930658671
     TICK;
     [super prepareLayout];
     
@@ -374,11 +375,11 @@ static const NSInteger unionSize = 20;
     return NO;
 }
 
-//根据size计算新item的位置，并且更新空白位置信息
+//根据size计算新item的位置，并且更新空白位置信息  TODO:为了性能暂时不考虑size.width < maxWidth的情况，业务测自己保证大小
 - (CGRect)calculationRectWithItemWithSize:(CGSize)size maxWidth:(CGFloat)maxWidth maxTop:(CGFloat *)p_top withSpaces:(NSMutableArray<WYSpaceIndexSet *> *)spaceArray {
     __block CGPoint point = CGPointZero;
     __block NSInteger spaceIndex = 0;
-    /**< 对比已有的空位找到一个能放下的size空位 (这里绝对能找到，因为有一个顶部空位做初始值) */
+    /**< 对比已有的空位找到一个能放下size大小的空位 (这里绝对能找到，因为有一个顶部空位做初始值) */
     [spaceArray enumerateObjectsUsingBlock:^(WYSpaceIndexSet *obj, NSUInteger idx, BOOL *stop) {
         [obj enumerateRangesUsingBlock:^(NSRange range, BOOL *stopSet) {
             if (range.length >= size.width) {
@@ -432,4 +433,7 @@ static const NSInteger unionSize = 20;
     return rect;
 }
 
+@end
+
+@implementation UICollectionViewFlowLayout (WYFlowLayoutProtocol)
 @end

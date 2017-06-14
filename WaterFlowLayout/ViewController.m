@@ -51,8 +51,9 @@
 
 @interface ViewController ()<UICollectionViewDataSource, CHTCollectionViewDelegateWaterfallLayout>
 
-@property (nonatomic, strong) UICollectionView *collectionView;
+//@property (nonatomic, strong) UICollectionView *collectionView;
 @property (nonatomic, strong) NSArray *cellSizes;
+@property (nonatomic, strong) NSArray *waterCellSizes;
 
 @end
 
@@ -61,59 +62,71 @@
 static CGFloat minimumLineSpacing = 1;
 static CGFloat minimumInteritemSpacing = 1;
 
-- (UICollectionView *)collectionView {
-    if (!_collectionView) {
-        NSInteger type = 2;
-        
-        UIEdgeInsets sectionInset = UIEdgeInsetsMake(1, 0, 1, 0);
-        CGFloat headerHeight = 36;
-        CGFloat footerHeight = 0;
-        
-        UICollectionViewLayout *useLayout = nil;
-        if (type == 0) {
-            WYTestFlowLayout *layout = [[WYTestFlowLayout alloc] init];
-            layout.minimumInteritemSpacing = minimumInteritemSpacing;
-            layout.minimumLineSpacing = minimumLineSpacing;
-            layout.sectionInset = sectionInset;
-            layout.headerReferenceSize = CGSizeMake(0, headerHeight);
-            layout.footerReferenceSize = CGSizeMake(0, footerHeight);
-            useLayout = layout;
-        } else if (type == 1) {
-            CHTCollectionViewWaterfallLayout *layout = [[CHTCollectionViewWaterfallLayout alloc] init];
-            layout.minimumColumnSpacing = minimumLineSpacing;
-            layout.minimumInteritemSpacing = minimumInteritemSpacing;
-            layout.sectionInset = sectionInset;
-            layout.columnCount  = 8;
-            layout.headerHeight = headerHeight;
-            layout.footerHeight = footerHeight;
-            useLayout = layout;
-        } else {
-            WYWaterFlowLayout *layout = [[WYWaterFlowLayout alloc] init];
-            layout.minimumInteritemSpacing = minimumInteritemSpacing;
-            layout.minimumLineSpacing = minimumLineSpacing;
-            layout.sectionInset = sectionInset;
-            layout.headerReferenceSize = CGSizeMake(0, headerHeight);
-            layout.footerReferenceSize = CGSizeMake(0, footerHeight);
-            layout.miniItemWidth = 10;
-            useLayout = layout;
-        }
-        
-        _collectionView = [[UICollectionView alloc] initWithFrame:self.view.bounds collectionViewLayout:useLayout];
-        _collectionView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
-        _collectionView.dataSource = self;
-        _collectionView.delegate = self;
-        _collectionView.backgroundColor = [UIColor whiteColor];
-        //_collectionView.contentInset = UIEdgeInsetsMake(0, 0, 44, 0);
-        [_collectionView registerClass:[CHTCollectionViewWaterfallCell class]
-            forCellWithReuseIdentifier:CELL_IDENTIFIER];
-        [_collectionView registerClass:[CHTCollectionViewWaterfallCell class]
-            forSupplementaryViewOfKind:UICollectionElementKindSectionHeader
-                   withReuseIdentifier:HEADER_IDENTIFIER];
-        [_collectionView registerClass:[CHTCollectionViewWaterfallCell class]
-            forSupplementaryViewOfKind:UICollectionElementKindSectionFooter
-                   withReuseIdentifier:FOOTER_IDENTIFIER];
+static UIEdgeInsets sectionInset;
+static CGFloat headerHeight = 36;
+static CGFloat headerWidth  = 36;
+static CGFloat footerHeight = 0;
+
+//- (UICollectionView *)collectionView {
+//    if (!_collectionView) {
+//        _collectionView = [[UICollectionView alloc] initWithFrame:self.view.bounds collectionViewLayout:[self.class layout]];
+//        _collectionView.autoresizingMask = UIViewAutoresizingFlexibleHeight | UIViewAutoresizingFlexibleWidth;
+//        _collectionView.dataSource = self;
+//        _collectionView.delegate = self;
+//        [self.view addSubview:_collectionView];
+//    }
+//    
+//    return _collectionView;
+//}
+
++ (UICollectionViewLayout *)layout {
+    NSInteger type = 2;
+    sectionInset = UIEdgeInsetsMake(1, 0, 1, 0);
+    
+    UICollectionViewLayout *useLayout = nil;
+    if (type == 0) {
+        useLayout = [self testLayout];
+    } else if (type == 1) {
+        useLayout = [self waterfallLayout];
+    } else {
+        useLayout = [self waterFlowLayout];
     }
-    return _collectionView;
+    
+    return useLayout;
+}
+
++ (UICollectionViewLayout *)waterFlowLayout {
+    WYWaterFlowLayout *layout = [[WYWaterFlowLayout alloc] init];
+    layout.minimumInteritemSpacing = minimumInteritemSpacing;
+    layout.minimumLineSpacing = minimumLineSpacing;
+    layout.sectionInset = sectionInset;
+    layout.headerReferenceSize = CGSizeMake(headerWidth, headerHeight);
+    layout.footerReferenceSize = CGSizeMake(headerWidth, footerHeight);
+    layout.headerInset = UIEdgeInsetsMake(10, 20, 30, 40);
+    layout.miniItemWidth = 10;
+    return layout;
+}
+
++ (UICollectionViewLayout *)testLayout {
+    WYTestFlowLayout *layout = [[WYTestFlowLayout alloc] init];
+    layout.minimumInteritemSpacing = minimumInteritemSpacing;
+    layout.minimumLineSpacing = minimumLineSpacing;
+    layout.sectionInset = sectionInset;
+    layout.headerReferenceSize = CGSizeMake(headerWidth, headerHeight);
+    layout.footerReferenceSize = CGSizeMake(headerWidth, footerHeight);
+//    layout.scrollDirection = UICollectionViewScrollDirectionHorizontal;
+    return layout;
+}
+
++ (UICollectionViewLayout *)waterfallLayout {
+    CHTCollectionViewWaterfallLayout *layout = [[CHTCollectionViewWaterfallLayout alloc] init];
+    layout.minimumColumnSpacing = minimumLineSpacing;
+    layout.minimumInteritemSpacing = minimumInteritemSpacing;
+    layout.sectionInset = sectionInset;
+    layout.columnCount  = 8;
+    layout.headerHeight = headerHeight;
+    layout.footerHeight = footerHeight;
+    return layout;
 }
 
 static CGFloat aItem;
@@ -144,6 +157,7 @@ static CGFloat aItem;
         [self addSizeToArray:array widthCount:1 heightCount:1];
         
         _cellSizes = array;
+        _waterCellSizes = [array copy];
     }
     
     return _cellSizes;
@@ -156,15 +170,34 @@ static CGFloat aItem;
 #pragma mark - Life Cycle
 
 - (void)dealloc {
-    _collectionView.delegate = nil;
-    _collectionView.dataSource = nil;
+    self.collectionView.delegate = nil;
+    self.collectionView.dataSource = nil;
+}
+
+- (instancetype)init {
+    self = [self initWithCollectionViewLayout:[ViewController layout]];
+    if (self) {
+        
+    }
+    
+    return self;
 }
 
 - (void)viewDidLoad {
     aItem = 30;
     [super viewDidLoad];
+    self.collectionView.backgroundColor = [UIColor whiteColor];
+    //self.collectionView.contentInset = UIEdgeInsetsMake(0, 0, 44, 0);
+    [self.collectionView registerClass:[CHTCollectionViewWaterfallCell class]
+            forCellWithReuseIdentifier:CELL_IDENTIFIER];
+    [self.collectionView registerClass:[CHTCollectionViewWaterfallCell class]
+            forSupplementaryViewOfKind:UICollectionElementKindSectionHeader
+                   withReuseIdentifier:HEADER_IDENTIFIER];
+    [self.collectionView registerClass:[CHTCollectionViewWaterfallCell class]
+            forSupplementaryViewOfKind:UICollectionElementKindSectionFooter
+                   withReuseIdentifier:FOOTER_IDENTIFIER];
+    
     self.title = @"水流布局测试";
-    [self.view addSubview:self.collectionView];
     
     self.navigationItem.rightBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemRefresh target:self action:@selector(vc_refreshLayout)];
     UIBarButtonItem *add = [[UIBarButtonItem alloc] initWithTitle:@"+" style:0 target:self action:@selector(vc_add_andRefreshLayout:)];
@@ -182,6 +215,13 @@ static CGFloat aItem;
 static NSInteger itemCount = 10;
 
 - (void)vc_add_andRefreshLayout:(UIBarButtonItem *)item {
+    if (item.tag == 0) {
+        [self.collectionView setCollectionViewLayout:[self.class waterFlowLayout] animated:YES];
+    } else {
+        [self.collectionView setCollectionViewLayout:[self.class waterfallLayout] animated:YES];
+    }
+    return;
+    
     itemCount += item.tag == 0 ? 1 : -1;
     if (item.tag == 0) {
         [self.collectionView insertItemsAtIndexPaths:@[[NSIndexPath indexPathForRow:itemCount - 1 inSection:0]]];
@@ -202,7 +242,7 @@ static NSInteger itemCount = 10;
 #pragma mark - UICollectionViewDataSource
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return itemCount;
+//    return itemCount;
     return CELL_COUNT;
 }
 
@@ -241,6 +281,10 @@ static NSInteger itemCount = 10;
 #pragma mark - CHTCollectionViewDelegateWaterfallLayout
 - (CGSize)collectionView:(UICollectionView *)collectionView layout:(UICollectionViewLayout *)collectionViewLayout sizeForItemAtIndexPath:(NSIndexPath *)indexPath {
     return [self.cellSizes[indexPath.item % self.cellSizes.count] CGSizeValue];
+}
+
+- (void)collectionView:(UICollectionView *)collectionView moveItemAtIndexPath:(NSIndexPath *)sourceIndexPath toIndexPath:(NSIndexPath *)destinationIndexPath {
+    
 }
 
 @end
