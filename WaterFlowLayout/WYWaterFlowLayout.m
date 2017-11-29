@@ -16,9 +16,10 @@
 #define TOCK
 #endif
 
+static CGFloat p_scale = 0.5;
+
 static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
-    CGFloat scale = [UIScreen mainScreen].scale;
-    return floor(value * scale) / scale;
+    return floor(value * p_scale) / p_scale;
 }
 
 @interface WYSpaceIndexSet : NSMutableIndexSet //用于保存一个矩形的位置和大小以及矩形底部那条线上的空位
@@ -53,6 +54,20 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
 @property (nonatomic, assign) CGFloat maxContentBottom;
 @property (nonatomic, assign) NSInteger  columnCount;   /**< 列数 default 4 */
 
+@property (nonatomic, assign) BOOL isSectionHeadersPinToVisibleChangeBounds;
+
+#pragma mark - WYFlowLayoutProtocol
+@property (nonatomic) CGFloat minimumLineSpacing;
+@property (nonatomic) CGFloat minimumInteritemSpacing;
+@property (nonatomic) CGSize itemSize;
+@property (nonatomic) UICollectionViewScrollDirection scrollDirection; // default is UICollectionViewScrollDirectionVertical TODO:UICollectionViewScrollDirectionHorizontal 还未实现
+@property (nonatomic) CGSize headerReferenceSize;
+@property (nonatomic) CGSize footerReferenceSize;
+@property (nonatomic) UIEdgeInsets sectionInset;
+
+@property (nonatomic) BOOL sectionHeadersPinToVisibleBounds;
+@property (nonatomic) BOOL sectionFootersPinToVisibleBounds;/**< TODO:还未实现 */
+
 @end
 
 @implementation WYWaterFlowLayout
@@ -62,6 +77,11 @@ static const NSInteger unionSize = 20;
 
 #pragma mark - Init
 - (void)commonInit {
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        p_scale = [UIScreen mainScreen].scale;
+    });
+    
     _minimumLineSpacing  = 1;
     _minimumInteritemSpacing  = 1;
     _scrollDirection = UICollectionViewScrollDirectionVertical;
@@ -144,6 +164,11 @@ static const NSInteger unionSize = 20;
     TICK;
     [super prepareLayout];
     
+    if (self.isSectionHeadersPinToVisibleChangeBounds) {
+        self.isSectionHeadersPinToVisibleChangeBounds = NO;
+        return;
+    }
+    
     [self.itemsAttributes removeAllObjects];
     [self.headersAttribute removeAllObjects];
     [self.footersAttribute removeAllObjects];
@@ -193,11 +218,9 @@ static const NSInteger unionSize = 20;
         NSInteger itemCount = [self.collectionView numberOfItemsInSection:section];
         NSMutableArray<UICollectionViewLayoutAttributes *> *itemAttributes = [NSMutableArray arrayWithCapacity:itemCount];
         if (itemCount > 0) {
-            CGFloat minimumLineSpacing;
+            CGFloat minimumLineSpacing = self.minimumLineSpacing;
             if ([self.delegate respondsToSelector:@selector(collectionView:layout:minimumLineSpacingForSectionAtIndex:)]) {
                 minimumLineSpacing = [self.delegate collectionView:self.collectionView layout:self minimumLineSpacingForSectionAtIndex:section];
-            } else {
-                minimumLineSpacing = self.minimumLineSpacing;
             }
             
             CGFloat columnSpacing = self.minimumInteritemSpacing;
@@ -227,7 +250,6 @@ static const NSInteger unionSize = 20;
                     itemSize = self.itemSize;
                 }
                 
-                itemSize.width  += _minimumInteritemSpacing;
                 itemSize.height += minimumLineSpacing;
                 if (itemSize.width > maxWidth && maxWidth > 0) {
                     itemSize.height /= itemSize.width / maxWidth;
@@ -235,8 +257,8 @@ static const NSInteger unionSize = 20;
                 }
                 
                 CGRect rect = [self calculationRectWithItemWithSize:itemSize maxWidth:maxWidth maxTop:&top withSpaces:emptySpaces];
-                rect.origin.x   += _minimumInteritemSpacing + sectionInset.left;
-                rect.size.width -= _minimumInteritemSpacing;
+                rect.origin.x   += (rect.origin.x == 0 ? sectionInset.left : 0);
+                rect.size.width -= columnSpacing;
                 
                 rect.origin.y    += minimumLineSpacing;
                 rect.size.height -= minimumLineSpacing;
@@ -281,7 +303,7 @@ static const NSInteger unionSize = 20;
     
     self.maxContentBottom = top;
     
-    // 把20个作为一组计算出一个超集rect，主要用来加上滑动时定位
+    // 把20个作为一组计算出一个超集rect，主要用来加速滑动时定位
     NSInteger idx = 0;
     NSInteger itemCounts = [self.allAttributes count];
     while (idx < itemCounts) {
@@ -328,11 +350,31 @@ static const NSInteger unionSize = 20;
     UICollectionViewLayoutAttributes *attribute = nil;
     if ([kind isEqualToString:UICollectionElementKindSectionHeader]) {
         attribute = self.headersAttribute[@(indexPath.section)];
+        attribute = [self attributesHeaderPinToVisibleBoundsAttributs:attribute] ? : attribute;
     } else if ([kind isEqualToString:UICollectionElementKindSectionFooter]) {
         attribute = self.footersAttribute[@(indexPath.section)];
     }
     
     return attribute;
+}
+
+- (UICollectionViewLayoutAttributes *)attributesHeaderPinToVisibleBoundsAttributs:(UICollectionViewLayoutAttributes *)attribute {
+    if (self.sectionHeadersPinToVisibleBounds && attribute.representedElementKind == UICollectionElementKindSectionHeader) {
+        CGPoint nextHeaderOrigin = CGPointMake(INFINITY, INFINITY);
+        if (attribute.indexPath.section + 1 < self.headersAttribute.count) {
+            UICollectionViewLayoutAttributes *nextHeaderAttributes = self.headersAttribute[@(attribute.indexPath.section + 1)];
+            nextHeaderOrigin = nextHeaderAttributes.frame.origin;
+        }
+        
+        CGRect frame = attribute.frame;
+        frame.origin.y = MIN(MAX(self.collectionView.contentOffset.y + self.collectionView.contentInset.top, frame.origin.y), nextHeaderOrigin.y - CGRectGetHeight(frame));
+        UICollectionViewLayoutAttributes *nAttribute = [UICollectionViewLayoutAttributes layoutAttributesForSupplementaryViewOfKind:attribute.representedElementKind withIndexPath:attribute.indexPath];
+        nAttribute.zIndex = 1024;
+        nAttribute.frame = frame;
+        return nAttribute;
+    }
+    
+    return nil;
 }
 
 - (NSArray<UICollectionViewLayoutAttributes *> *)layoutAttributesForElementsInRect:(CGRect)rect {
@@ -356,11 +398,12 @@ static const NSInteger unionSize = 20;
     }
     
     for (i = begin; i < end; i++) {
-        UICollectionViewLayoutAttributes *attr = self.allAttributes[i];
-        if (CGRectIntersectsRect(rect, attr.frame)) {
-            [attrs addObject:attr];
+        UICollectionViewLayoutAttributes *attribute = self.allAttributes[i];
+        if (CGRectIntersectsRect(rect, attribute.frame)) {
+            attribute = [self attributesHeaderPinToVisibleBoundsAttributs:attribute] ? : attribute;
+            [attrs addObject:attribute];
         }
-     }
+    }
     
     TOCK;
     return [NSArray arrayWithArray:attrs];
@@ -368,7 +411,9 @@ static const NSInteger unionSize = 20;
 
 - (BOOL)shouldInvalidateLayoutForBoundsChange:(CGRect)newBounds {
     CGRect oldBounds = self.collectionView.bounds;
-    if (CGRectGetWidth(newBounds) != CGRectGetWidth(oldBounds)) {
+    BOOL isWidthChange = CGRectGetWidth(newBounds) != CGRectGetWidth(oldBounds);
+    if (self.sectionHeadersPinToVisibleBounds || isWidthChange) {
+        self.isSectionHeadersPinToVisibleChangeBounds = !isWidthChange;
         return YES;
     }
     
@@ -392,6 +437,7 @@ static const NSInteger unionSize = 20;
         }];
     }];
     
+    size.width += self.minimumInteritemSpacing;
     CGRect rect = (CGRect){point, size};
     WYSpaceIndexSet *spaceObj = [WYSpaceIndexSet indexSetWithFrame:rect maxWidth:maxWidth];
     
@@ -435,5 +481,9 @@ static const NSInteger unionSize = 20;
 
 @end
 
+@implementation WYWaterFlowLayout (WYFlowLayoutProtocol)
+@end
+
 @implementation UICollectionViewFlowLayout (WYFlowLayoutProtocol)
 @end
+

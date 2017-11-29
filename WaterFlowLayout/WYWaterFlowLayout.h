@@ -24,25 +24,22 @@
 @property (nonatomic) CGSize footerReferenceSize;
 @property (nonatomic) UIEdgeInsets sectionInset;
 
+@property (nonatomic) BOOL sectionHeadersPinToVisibleBounds;
+@property (nonatomic) BOOL sectionFootersPinToVisibleBounds;
+
 @end
 
-@interface WYWaterFlowLayout : UICollectionViewLayout<WYFlowLayoutProtocol>
+@interface WYWaterFlowLayout : UICollectionViewLayout
 
 @property (nonatomic, assign) UIEdgeInsets headerInset; /**< default UIEdgeInsetsZero */
 @property (nonatomic, assign) UIEdgeInsets footerInset; /**< default UIEdgeInsetsZero */
 @property (nonatomic, assign) CGFloat miniItemWidth;    /**< default 10 这个值越大布局速度越快 */
 
-#pragma mark - WYFlowLayoutProtocol
-@property (nonatomic) CGFloat minimumLineSpacing;
-@property (nonatomic) CGFloat minimumInteritemSpacing;
-@property (nonatomic) CGSize itemSize;
-@property (nonatomic) UICollectionViewScrollDirection scrollDirection; // default is UICollectionViewScrollDirectionVertical TODO:UICollectionViewScrollDirectionHorizontal 还未实现
-@property (nonatomic) CGSize headerReferenceSize;
-@property (nonatomic) CGSize footerReferenceSize;
-@property (nonatomic) UIEdgeInsets sectionInset;
-
 @end
 
+@interface WYWaterFlowLayout (WYFlowLayoutProtocol)<WYFlowLayoutProtocol>
+@end
 
 @interface UICollectionViewFlowLayout (WYFlowLayoutProtocol)<WYFlowLayoutProtocol>
 @end
+
