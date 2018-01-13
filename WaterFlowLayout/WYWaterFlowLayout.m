@@ -16,13 +16,17 @@
 #define TOCK
 #endif
 
-static CGFloat p_scale = 0.5;
+static CGFloat p_scale = 2;
 
 static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
     return floor(value * p_scale) / p_scale;
 }
 
-@interface WYSpaceIndexSet : NSMutableIndexSet //用于保存一个矩形的位置和大小以及矩形底部那条线上的空位
+static NSInteger WYWaterPixFromRound(CGFloat value) {//size转换成像素点
+    return round(value * p_scale);
+}
+
+@interface WYSpaceIndexSet : NSMutableIndexSet //用于保存一个矩形的位置和大小以及矩形底部那条线上的空位 1像素点为1个单位
 @property (nonatomic, readonly) CGFloat maxY;
 @property (nonatomic, readonly) CGFloat x;
 @property (nonatomic, readonly) CGFloat width;
@@ -32,10 +36,10 @@ static CGFloat WYWaterFlowLayoutFloorCGFloat(CGFloat value) {
 
 + (instancetype)indexSetWithFrame:(CGRect)frame maxWidth:(CGFloat)maxWidth {
     WYSpaceIndexSet *set = [[self alloc] init];
-    set->_maxY = CGRectGetMaxY(frame);
-    set->_x = frame.origin.x;
-    set->_width = frame.size.width;
-    [set addIndexesInRange:NSMakeRange(0, maxWidth)];
+    set->_maxY = WYWaterPixFromRound(CGRectGetMaxY(frame));
+    set->_x = WYWaterPixFromRound(frame.origin.x);
+    set->_width = WYWaterPixFromRound(frame.size.width);
+    [set addIndexesInRange:NSMakeRange(0, WYWaterPixFromRound(maxWidth))];
     
     return set;
 }
@@ -182,7 +186,6 @@ static const NSInteger unionSize = 20;
     }
     
     CGFloat const maxContentWidth = self.collectionView.bounds.size.width - self.collectionView.contentInset.left - self.collectionView.contentInset.right;
-    CGFloat const mini_x = self.collectionView.contentInset.left;
     
     CGFloat   top = 0;//self.collectionView.contentInset.top;////这里不需要加top，因为已经体现到bounds上了
     UICollectionViewLayoutAttributes *attributes;
@@ -206,7 +209,7 @@ static const NSInteger unionSize = 20;
             top += headerInset.top;
             
             attributes = [UICollectionViewLayoutAttributes layoutAttributesForSupplementaryViewOfKind:UICollectionElementKindSectionHeader withIndexPath:[NSIndexPath indexPathForItem:0 inSection:section]];
-            attributes.frame = CGRectMake(headerInset.left + mini_x, top, maxContentWidth - headerInset.left - headerInset.right, headerHeight);
+            attributes.frame = CGRectMake(headerInset.left, top, maxContentWidth - headerInset.left - headerInset.right, headerHeight);
             
             self.headersAttribute[@(section)] = attributes;
             [self.allAttributes addObject:attributes];
@@ -257,7 +260,7 @@ static const NSInteger unionSize = 20;
                 }
                 
                 CGRect rect = [self calculationRectWithItemWithSize:itemSize maxWidth:maxWidth maxTop:&top withSpaces:emptySpaces];
-                rect.origin.x   += (rect.origin.x == 0 ? sectionInset.left : 0);
+                rect.origin.x   += sectionInset.left + (rect.origin.x == 0 ? 0 : columnSpacing);
                 rect.size.width -= columnSpacing;
                 
                 rect.origin.y    += minimumLineSpacing;
@@ -292,7 +295,7 @@ static const NSInteger unionSize = 20;
             
             top += footerInset.top;
             attributes = [UICollectionViewLayoutAttributes layoutAttributesForSupplementaryViewOfKind:UICollectionElementKindSectionFooter withIndexPath:[NSIndexPath indexPathForItem:0 inSection:section]];
-            attributes.frame = CGRectMake(footerInset.left + mini_x, top, maxContentWidth - footerInset.left - footerInset.right, footerHeight);
+            attributes.frame = CGRectMake(footerInset.left, top, maxContentWidth - footerInset.left - footerInset.right, footerHeight);
             
             self.footersAttribute[@(section)] = attributes;
             [self.allAttributes addObject:attributes];
@@ -367,7 +370,7 @@ static const NSInteger unionSize = 20;
         }
         
         CGRect frame = attribute.frame;
-        frame.origin.y = MIN(MAX(self.collectionView.contentOffset.y + self.collectionView.contentInset.top, frame.origin.y), nextHeaderOrigin.y - CGRectGetHeight(frame));
+        frame.origin.y = MIN(MAX(self.collectionView.contentOffset.y + self.collectionView.contentInset.top + self.headersPinToVisibleOffset, frame.origin.y), nextHeaderOrigin.y - CGRectGetHeight(frame));
         UICollectionViewLayoutAttributes *nAttribute = [UICollectionViewLayoutAttributes layoutAttributesForSupplementaryViewOfKind:attribute.representedElementKind withIndexPath:attribute.indexPath];
         nAttribute.zIndex = 1024;
         nAttribute.frame = frame;
@@ -381,7 +384,7 @@ static const NSInteger unionSize = 20;
     TICK;
     NSInteger i;
     NSInteger begin = 0, end = self.unionRects.count;
-    NSMutableArray *attrs = [NSMutableArray array];
+    NSMutableArray<UICollectionViewLayoutAttributes *> *attrs = [NSMutableArray array];
     
     for (i = 0; i < self.unionRects.count; i++) {
         if (CGRectIntersectsRect(rect, [self.unionRects[i] CGRectValue])) {
@@ -397,11 +400,23 @@ static const NSInteger unionSize = 20;
         }
     }
     
+    BOOL hasHeader = NO;
     for (i = begin; i < end; i++) {
         UICollectionViewLayoutAttributes *attribute = self.allAttributes[i];
         if (CGRectIntersectsRect(rect, attribute.frame)) {
             attribute = [self attributesHeaderPinToVisibleBoundsAttributs:attribute] ? : attribute;
             [attrs addObject:attribute];
+            if (attribute.representedElementKind == UICollectionElementKindSectionHeader && attribute.indexPath.section == attrs.firstObject.indexPath.section) {
+                hasHeader = YES;
+            }
+        }
+    }
+    
+    if (!hasHeader && self.sectionHeadersPinToVisibleBounds) {
+        UICollectionViewLayoutAttributes *attribute = self.headersAttribute[@(attrs.firstObject.indexPath.section)];
+        attribute = [self attributesHeaderPinToVisibleBoundsAttributs:attribute] ? : attribute;
+        if (attribute) {
+            [attrs addObject:attribute];//一组里面cell太多的时候可能header会不在显示rect里面，这里把它单独加一次
         }
     }
     
@@ -424,10 +439,11 @@ static const NSInteger unionSize = 20;
 - (CGRect)calculationRectWithItemWithSize:(CGSize)size maxWidth:(CGFloat)maxWidth maxTop:(CGFloat *)p_top withSpaces:(NSMutableArray<WYSpaceIndexSet *> *)spaceArray {
     __block CGPoint point = CGPointZero;
     __block NSInteger spaceIndex = 0;
+    CGSize size_pix = CGSizeMake(WYWaterPixFromRound(size.width), WYWaterPixFromRound(size.height));
     /**< 对比已有的空位找到一个能放下size大小的空位 (这里绝对能找到，因为有一个顶部空位做初始值) */
     [spaceArray enumerateObjectsUsingBlock:^(WYSpaceIndexSet *obj, NSUInteger idx, BOOL *stop) {
         [obj enumerateRangesUsingBlock:^(NSRange range, BOOL *stopSet) {
-            if (range.length >= size.width) {
+            if (range.length >= size_pix.width) {
                 point.x = range.location;
                 point.y = obj.maxY;
                 spaceIndex = idx + 1; //找到一个初始位置，这个位置是可能比实际需要放的位置要靠前，后面枚举的时候再进一步调整该位置
@@ -437,8 +453,8 @@ static const NSInteger unionSize = 20;
         }];
     }];
     
-    size.width += self.minimumInteritemSpacing;
-    CGRect rect = (CGRect){point, size};
+    size_pix.width += WYWaterPixFromRound(self.minimumInteritemSpacing);
+    CGRect rect = CGRectMake(point.x / p_scale, point.y / p_scale, size.width, size.height);
     WYSpaceIndexSet *spaceObj = [WYSpaceIndexSet indexSetWithFrame:rect maxWidth:maxWidth];
     
     NSMutableIndexSet *shouldDeleteSet = [NSMutableIndexSet indexSet];
@@ -449,7 +465,7 @@ static const NSInteger unionSize = 20;
             [spaceObj removeIndexesInRange:NSMakeRange(obj.x, obj.width)];//比他高的会占用它的空位
         } else if (obj.maxY < spaceObj.maxY) {
             [obj removeIndexesInRange:NSMakeRange(spaceObj.x, spaceObj.width)];//比它低的空位被它占用
-            if (obj.count < self.miniItemWidth + self.minimumInteritemSpacing) { //这一行已经没有空位了需要删除掉
+            if (obj.count < WYWaterPixFromRound(self.miniItemWidth + self.minimumInteritemSpacing)) { //这一行已经没有空位了需要删除掉
                 [shouldDeleteSet addIndex:idx];
             }
             
@@ -473,9 +489,10 @@ static const NSInteger unionSize = 20;
     }
     
     if (p_top) {
-        *p_top = top;
+        *p_top = top / p_scale;
     }
     
+    //    if (rect.origin.x > 0) rect.origin.x -= 1 / p_scale;//找到的位置是下一个位置的下标，所以这里减1
     return rect;
 }
 
@@ -486,4 +503,3 @@ static const NSInteger unionSize = 20;
 
 @implementation UICollectionViewFlowLayout (WYFlowLayoutProtocol)
 @end
-

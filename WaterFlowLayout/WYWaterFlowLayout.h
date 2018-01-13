@@ -34,6 +34,7 @@
 @property (nonatomic, assign) UIEdgeInsets headerInset; /**< default UIEdgeInsetsZero */
 @property (nonatomic, assign) UIEdgeInsets footerInset; /**< default UIEdgeInsetsZero */
 @property (nonatomic, assign) CGFloat miniItemWidth;    /**< default 10 这个值越大布局速度越快 */
+@property (nonatomic, assign) CGFloat headersPinToVisibleOffset; /**< default 0 标题悬浮位置偏移量 */
 
 @end
 
@@ -42,4 +43,3 @@
 
 @interface UICollectionViewFlowLayout (WYFlowLayoutProtocol)<WYFlowLayoutProtocol>
 @end
-
