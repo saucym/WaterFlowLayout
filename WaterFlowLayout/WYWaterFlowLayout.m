@@ -260,7 +260,7 @@ static const NSInteger unionSize = 20;
                 }
                 
                 CGRect rect = [self calculationRectWithItemWithSize:itemSize maxWidth:maxWidth maxTop:&top withSpaces:emptySpaces];
-                rect.origin.x   += sectionInset.left + (rect.origin.x == 0 ? 0 : columnSpacing);
+                rect.origin.x   += sectionInset.left;
                 rect.size.width -= columnSpacing;
                 
                 rect.origin.y    += minimumLineSpacing;
@@ -437,15 +437,15 @@ static const NSInteger unionSize = 20;
 
 //根据size计算新item的位置，并且更新空白位置信息  TODO:为了性能暂时不考虑size.width < maxWidth的情况，业务测自己保证大小
 - (CGRect)calculationRectWithItemWithSize:(CGSize)size maxWidth:(CGFloat)maxWidth maxTop:(CGFloat *)p_top withSpaces:(NSMutableArray<WYSpaceIndexSet *> *)spaceArray {
-    __block CGPoint point = CGPointZero;
+    __block CGPoint point_pix = CGPointZero;
     __block NSInteger spaceIndex = 0;
     CGSize size_pix = CGSizeMake(WYWaterPixFromRound(size.width), WYWaterPixFromRound(size.height));
     /**< 对比已有的空位找到一个能放下size大小的空位 (这里绝对能找到，因为有一个顶部空位做初始值) */
     [spaceArray enumerateObjectsUsingBlock:^(WYSpaceIndexSet *obj, NSUInteger idx, BOOL *stop) {
         [obj enumerateRangesUsingBlock:^(NSRange range, BOOL *stopSet) {
             if (range.length >= size_pix.width) {
-                point.x = range.location;
-                point.y = obj.maxY;
+                point_pix.x = range.location;
+                point_pix.y = obj.maxY;
                 spaceIndex = idx + 1; //找到一个初始位置，这个位置是可能比实际需要放的位置要靠前，后面枚举的时候再进一步调整该位置
                 *stop = YES;
                 *stopSet = YES;
@@ -454,7 +454,7 @@ static const NSInteger unionSize = 20;
     }];
     
     size_pix.width += WYWaterPixFromRound(self.minimumInteritemSpacing);
-    CGRect rect = CGRectMake(point.x / p_scale, point.y / p_scale, size.width, size.height);
+    CGRect rect = CGRectMake(point_pix.x / p_scale, point_pix.y / p_scale, size_pix.width / p_scale, size_pix.height / p_scale);
     WYSpaceIndexSet *spaceObj = [WYSpaceIndexSet indexSetWithFrame:rect maxWidth:maxWidth];
     
     NSMutableIndexSet *shouldDeleteSet = [NSMutableIndexSet indexSet];
@@ -492,7 +492,6 @@ static const NSInteger unionSize = 20;
         *p_top = top / p_scale;
     }
     
-    //    if (rect.origin.x > 0) rect.origin.x -= 1 / p_scale;//找到的位置是下一个位置的下标，所以这里减1
     return rect;
 }
 
@@ -503,3 +502,4 @@ static const NSInteger unionSize = 20;
 
 @implementation UICollectionViewFlowLayout (WYFlowLayoutProtocol)
 @end
+
